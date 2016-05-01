@@ -1,0 +1,57 @@
+Changes in <fstream>:
+
+* specializations of std::swap for std::basic_filebuf, std::basic_ifstream, std::basic_ofstream, std::basic_fstream (C++11)
+
+* std::basic_filebuf:
+    - public operator= added (C++11)
+    - public member function swap added (C++11)
+    - parent std::basic_streambuf:
+        + protected operator= added (C++11)
+        + protected member function swap added (C++11)
+
+* std::basic_ifstream:
+    - public operator= added (C++11)
+    - public member function swap added (C++11)
+    - parent std::basic_istream:
+        + protected operator= added (C++11)
+        + protected member function swap added (C++11)
+        + parent std::basic_ios:
+            > operator void* changed to operator bool (C++11)
+            > protected member function move added (C++11)
+            > protected member function swap added (C++11)
+            > parent std::ios_base:
+                = no changes
+    - parent std::basic_ios:
+        + see above
+    - parent std::ios_base:
+        + see above
+
+* std::basic_ofstream:
+    - public operator= added (C++11)
+    - public member function swap added (C++11)
+    - parent std::basic_ostream:
+        + protected operator= added (C++11)
+        + protected member function swap added (C++11)
+        + parent std::basic_ios:
+            > see above
+        + parent std::ios_base:
+            > see above
+    - parent std::basic_ios:
+        + see above
+    - parent std::ios_base:
+        + see above
+
+* std::basic_fstream:
+    - public operator= added (C++11)
+    - public member function swap added (C++11)
+    - parent std::basic_istream:
+        + see above
+    - parent std::basic_ostream:
+        + see above
+    - parent std::basic_ios:
+        + see above
+    - parent std::ios_base:
+        + see above
+
+Summary: IOStreams haven't changed a lot. C++11 introduced move semantics and the swap algorithm, mainly for using them
+in objects that will be moved and/or swapped.
