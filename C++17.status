@@ -1,0 +1,75 @@
+libstdc++ version 5.3.0
+libc++ version 3.7.1
+
+* Standard library extensions (libray fundamentals TS)
+    - <experimental/optional>
+        + supported by libstdc++
+        + supported by libc++
+    - <experimental/any>
+        + supported by libstdc++
+        + not supported by libc++
+    - <experimental/string_view>
+        + supported by libstdc++
+        + supported by libc++
+    - <experimental/memory_resource>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/memory>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/algorithm>
+        + supported by libstdc++
+        + supported by libc++
+    - <experimental/functional>
+        + supported by libstdc++
+        + supported by libc++
+    - <experimental/tuple>
+        + supported by libstdc++
+        + supported by libc++
+
+* Standard library extensions v2 (library fundamentals TS v2)
+    - <experimental/type_traits>
+        + supported by libstdc++
+        + supported by libc++
+    - <experimental/functional>
+        + supported by libstdc++
+        + supported by libc++
+    - <experimental/propagate_const>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/memory>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/string>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/array>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/iterator>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/numeric>
+        + not supported by libstdc++
+        + not supported libc++
+    - <experimental/random>
+        + not supported by libstdc++
+        + not supported by libc++
+    - <experimental/algorithm>
+        + supported by libstdc++
+        + supported by libc++
+    - <experimental/source_location>
+        + not supported by libstdc++
+        + not supported by libc++
+
+* Parallelism library extensions (parallelism TS)
+    - not supported by libstdc++
+    - not supported by libc++
+
+* Concurrency library extensions (concurrency TS)
+    - not supported by libstdc++
+    - not supported by libc++
+
+* Concepts
+    - not supported by g++ 5.3.0
+    - not supported by clang++ 3.7.1
