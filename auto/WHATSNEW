@@ -1,0 +1,12 @@
+* new core language keyword: auto (C++11)
+* deduces types from initializer:
+    - auto i = 0; // deduced to int
+    - auto f = 0.f; // deduced to float (note the f behind the 0.)
+    - auto d = 0.; // deduced to double
+    - auto ul = 0ul; // deduced to unsigned long
+* adds trailing return types to the language
+    - auto foo() -> void; // function is void foo();
+    - auto bar() -> typename std::enable_if<some_expression, some_type>::type // function is some_type bar();
+
+STATUS: As type deduction happens at compile time no changes in scorep are needed. Vampir displays the
+deduced function signatures correctly.

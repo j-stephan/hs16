@@ -53,5 +53,6 @@ Changes in <fstream>:
     - parent std::ios_base:
         + see above
 
-Summary: IOStreams haven't changed a lot. C++11 introduced move semantics and the swap algorithm, mainly for using them
-in objects that will be moved and/or swapped.
+STATUS: IOStreams haven't changed a lot. C++11 introduced move semantics and the swap algorithm, mainly for using them
+in objects that will be moved and/or swapped. As HPC is not affected in a specific way no changes to scorep or vampir
+are needed.

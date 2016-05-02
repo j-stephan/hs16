@@ -3,5 +3,8 @@ PROJECT(HS16 LANGUAGES CXX)
 
 SET(CMAKE_CXX_COMPILER "scorep-g++")
 
+ADD_EXECUTABLE(auto auto/auto.cpp auto/test_func.cpp)
+SET_TARGET_PROPERTIES(auto PROPERTIES CXX_STANDARD 14)
+
 ADD_EXECUTABLE(vector_mul vector_mul/vector_mul.cpp)
 SET_TARGET_PROPERTIES(vector_mul PROPERTIES CXX_STANDARD 14)
