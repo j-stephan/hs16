@@ -1,0 +1,11 @@
+* new library feature: std::thread (C++11)
+* found in header <thread>
+
+STATUS: simple_thread example builds but fails to execute (with scorep 2.0.1):
+
+./simple_thread
+[Score-P] src/measurement/thread/create_wait/scorep_thread_create_wait_pthread.c:84: Fatal: Bug 'tpd == 0': Invalid Pthread thread specific data object. Please ensure that all pthread_create calls are instrumented.
+terminate called without an active exception
+[Score-P] Please report this to support@score-p.org. Thank you.
+
+[1] 3037 abort (core dumped)    ./simple_thread
