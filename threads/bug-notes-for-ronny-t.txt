@@ -1,0 +1,84 @@
+~/desktop/hauptseminar/git-hydroo-hs16/threads$ scorep g++ --std=c++14 -pthread simple_thread.cpp
+
+=============================================================================
+
+vt ~/desktop/hauptseminar/git-hydroo-hs16/threads$ g++ --std=c++14 -pthread simple_thread.cpp
+vt ~/desktop/hauptseminar/git-hydroo-hs16/threads$ ldd a.out 
+linux-vdso.so.1 =>  (0x00007fff281a8000)
+libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f89bec53000)
+libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f89bea3c000)
+libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f89be81f000)
+libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f89be456000)
+libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f89be14c000)
+/lib64/ld-linux-x86-64.so.2 (0x0000556092d45000)
+
+=============================================================================
+
+vt ~/desktop/hauptseminar/git-hydroo-hs16/threads$ scorep g++ --std=c++14 -pthread simple_thread.cpp 
+vt ~/desktop/hauptseminar/git-hydroo-hs16/threads$ ldd a.out 
+linux-vdso.so.1 =>  (0x00007ffc56ff9000)
+libcube4w.so.7 => /opt/cube-4.3.3/lib/libcube4w.so.7 (0x00007f86de0cf000)
+libcubewriter4.so.7 => /opt/cube-4.3.3/lib/libcubewriter4.so.7 (0x00007f86ddecb000)
+libpapi.so.5.4.3 => /usr/lib/x86_64-linux-gnu/libpapi.so.5.4.3 (0x00007f86ddc39000)
+libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f86dda35000)
+libunwind.so.8 => /usr/lib/x86_64-linux-gnu/libunwind.so.8 (0x00007f86dd819000)
+libbfd-2.26-system.so => /usr/lib/x86_64-linux-gnu/libbfd-2.26-system.so (0x00007f86dd4d4000)
+libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f86dd152000)
+libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f86dce48000)
+libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f86dcc2b000)
+libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f86dc862000)
+libpfm.so.4 => /usr/lib/x86_64-linux-gnu/libpfm.so.4 (0x00007f86dc4e6000)
+/lib64/ld-linux-x86-64.so.2 (0x000055c6ee32c000)
+liblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5 (0x00007f86dc2c4000)
+libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f86dc0aa000)
+libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f86dbe93000
+
+=============================================================================
+
+vt ~/desktop/hauptseminar/git-hydroo-hs16/threads$ scorep --thread=pthread g++ --std=c++14 -pthread simple_thread.cpp 
+vt ~/desktop/hauptseminar/git-hydroo-hs16/threads$ SCOREP_ENABLE_TRACING=yes ./a.out 
+[Score-P] src/measurement/thread/create_wait/scorep_thread_create_wait_pthread.c:84: Fatal: Bug 'tpd == 0': Invalid Pthread thread specific data object. Please ensure that all pthread_create calls are instrumented.
+[Score-P] Please report this to support@score-p.org. Thank you.
+[Score-P] Try also to preserve any generated core dumps.
+Aborted (core dumped)
+
+=============================================================================
+
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./a.out...done.
+(gdb) r
+Starting program: /home/brendel/work/zih/fuer-studenten/ss16-hauptseminar/git-hydroo-hs16/threads/a.out 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff4808700 (LWP 26187)]
+[Score-P] src/measurement/thread/create_wait/scorep_thread_create_wait_pthread.c:84: Fatal: Bug 'tpd == 0': Invalid Pthread thread specific data object. Please ensure that all pthread_create calls are instrumented.
+[Score-P] Please report this to support@score-p.org. Thank you.
+[Score-P] Try also to preserve any generated core dumps.
+[New Thread 0x7ffff4007700 (LWP 26188)]
+[Score-P] src/measurement/thread/create_wait/scorep_thread_create_wait_pthread.c:84: Fatal: Bug 'tpd == 0': Invalid Pthread thread specific data object. Please ensure that all pthread_create calls are instrumented.
+[Score-P] Please report this to support@score-p.org. Thank you.
+[Score-P] Try also to preserve any generated core dumps.
+
+Thread 2 "a.out" received signal SIGABRT, Aborted.
+[Switching to Thread 0x7ffff4808700 (LWP 26187)]
+0x00007ffff63be418 in __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:54
+54  ../sysdeps/unix/sysv/linux/raise.c: No such file or directory.
+(gdb) bt
+#0  0x00007ffff63be418 in __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:54
+#1  0x00007ffff63c001a in __GI_abort () at abort.c:89
+#2  0x000000000043456a in SCOREP_UTILS_Error_Abort (srcdir=srcdir@entry=0x4b1bda "../../build-backend/../", 
+    fileName=fileName@entry=0x4e51d0 "../../build-backend/../src/measurement/thread/create_wait/scorep_thread_create_wait_pthread.c", 
+    line=line@entry=84, functionName=functionName@entry=0x4e5680 <__func__.4370> "SCOREP_Location_GetCurrentCPULocation", 
+    messageFormatString=messageFormatString@entry=0x4e5230 "Bug 'tpd == 0': Invalid Pthread thread specific data object. Please ensure that all pthread_create calls are instrumented.") at ../../build-backend/../vendor/common/src/utils/exception/UTILS_Error.c:625
+#3  0x00000000004aeb85 in SCOREP_Location_GetCurrentCPULocation ()
+    at ../../build-backend/../src/measurement/thread/create_wait/scorep_thread_create_wait_pthread.c:83
+#4  0x000000000040a744 in SCOREP_EnterRegion (regionHandle=1145592) at ../../build-backend/../src/measurement/SCOREP_Events.c:183
+#5  0x0000000000408949 in __cyg_profile_func_enter (func=<optimized out>, callsite=<optimized out>)
+    at ../../build-backend/../src/adapters/compiler/scorep_compiler_gnu.inc.c:105
+#6  0x00000000004085fa in std::thread::_Impl<std::_Bind_simple<void (*())()> >::_M_run() (this=0x12965c0) at /usr/include/c++/5/thread:115
+#7  0x00007ffff6d30c70 in ?? () from /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+#8  0x00007ffff67596fa in start_thread (arg=0x7ffff4808700) at pthread_create.c:333
+#9  0x00007ffff648fb5d in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:109
