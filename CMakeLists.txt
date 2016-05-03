@@ -9,6 +9,9 @@ SET(CMAKE_CXX_COMPILER "scorep-g++")
 ADD_EXECUTABLE(auto auto/auto.cpp auto/test_func.cpp)
 SET_TARGET_PROPERTIES(auto PROPERTIES CXX_STANDARD 14)
 
+ADD_EXECUTABLE(simple_fileio fileio/simple_fileio.cpp)
+SET_TARGET_PROPERTIES(simple_fileio PROPERTIES CXX_STANDARD 14)
+
 ADD_EXECUTABLE(simple_thread threads/simple_thread.cpp)
 SET_TARGET_PROPERTIES(simple_thread PROPERTIES CXX_STANDARD 14)
 TARGET_LINK_LIBRARIES(simple_thread Threads::Threads)
