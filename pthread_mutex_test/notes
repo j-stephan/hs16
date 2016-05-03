@@ -1,0 +1,14 @@
+$ scorep g++ -Wall -pthread main.cpp
+$ scan -t ./a.out          # part of scalasca
+$ square scorep_a_OxP_trace # part of scalasca
+
+* left most list: right click -> expand all
+* -> lock contention!
+* right click on lock contention and view "Documentation" for an explanation lock contention
+
+
+$ otf2-print scorep_a_OxP_trace/traces.otf2
+
+
+$ vampir scorep_a_OxP_trace/traces.otf2
+
