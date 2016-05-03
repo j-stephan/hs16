@@ -1,0 +1,19 @@
+S=C=A=N: Tue May  3 16:30:28 2016: Analyze start
+ /opt/scalasca/bin/scout.omp ./scorep_a_OxP_trace/traces.otf2
+SCOUT   Copyright (c) 1998-2016 Forschungszentrum Juelich GmbH
+        Copyright (c) 2009-2014 German Research School for Simulation
+                                Sciences GmbH
+
+Analyzing experiment archive ./scorep_a_OxP_trace/traces.otf2
+
+Opening experiment archive ... done (0.000s).
+Reading definition data    ... done (0.000s).
+Reading event trace data   ... done (0.003s).
+Preprocessing              ... done (0.000s).
+Analyzing trace data       ... done (0.000s).
+Writing analysis report    ... done (0.057s).
+
+Max. memory usage         : 6.918MB
+
+Total processing time     : 0.061s
+S=C=A=N: Tue May  3 16:30:28 2016: Analyze done (status=0) 0s
