@@ -1,0 +1,4 @@
+- folding expressions will be part of the coming C++17 standard
+- supported by gcc and clang with the "-std=c++1z" compiler flag
+
+- scorep and vampir are able to correctly display simple functions using these expressions
