@@ -1,0 +1,4 @@
+PatternName               Count      Mean    Median      Minimum      Maximum      Sum     Variance    Quartil25    Quartil75
+pthread_lock_contention_mutex_lock         1 0.0099182 0.0099182 0.0099181506 0.0099181506 0.0099181506
+- cnode 8 enter: 0.0108854939 exit: 0.0208590198 duration: 0.0099181506 rank: 0
+
