@@ -9,3 +9,7 @@ terminate called without an active exception
 [Score-P] Please report this to support@score-p.org. Thank you.
 
 [1] 3037 abort (core dumped)    ./simple_thread
+
+
+Problem: std::thread is spawning new pthreads inside an external library (libstdc++ for example). scorep can't handle this currently and crashes as it sees threads that don't "exist" in its scope.
+Solution: support unknown threads

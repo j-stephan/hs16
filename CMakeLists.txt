@@ -5,16 +5,15 @@ SET(THREADS_PREFER_PTHREAD_FLAG ON)
 FIND_PACKAGE(Threads REQUIRED)
 
 SET(CMAKE_CXX_COMPILER "scorep-g++")
+SET(CMAKE_CXX_FLAGS "-std=c++14")
 
 ADD_EXECUTABLE(auto auto/auto.cpp auto/test_func.cpp)
-SET_TARGET_PROPERTIES(auto PROPERTIES CXX_STANDARD 14)
 
 ADD_EXECUTABLE(simple_fileio fileio/simple_fileio.cpp)
-SET_TARGET_PROPERTIES(simple_fileio PROPERTIES CXX_STANDARD 14)
 
 ADD_EXECUTABLE(simple_thread threads/simple_thread.cpp)
-SET_TARGET_PROPERTIES(simple_thread PROPERTIES CXX_STANDARD 14)
 TARGET_LINK_LIBRARIES(simple_thread Threads::Threads)
 
+ADD_EXECUTABLE(folding_sum folding_expressions/sum.cpp)
+
 ADD_EXECUTABLE(vector_mul vector_mul/vector_mul.cpp)
-SET_TARGET_PROPERTIES(vector_mul PROPERTIES CXX_STANDARD 14)
