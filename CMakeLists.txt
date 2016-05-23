@@ -5,7 +5,7 @@ SET(THREADS_PREFER_PTHREAD_FLAG ON)
 FIND_PACKAGE(Threads REQUIRED)
 
 SET(CMAKE_CXX_COMPILER "scorep-g++")
-SET(CMAKE_CXX_FLAGS "-std=c++14")
+SET(CMAKE_CXX_FLAGS "-std=c++1z")
 
 ADD_EXECUTABLE(auto auto/auto.cpp auto/test_func.cpp)
 
