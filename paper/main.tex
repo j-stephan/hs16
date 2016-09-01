@@ -1,0 +1,25 @@
+\documentclass[utf8,hauptseminar]{zihpub}
+
+\usepackage{listings}
+
+\lstset{language=C++,
+		basicstyle=\small\ttfamily,
+		breaklines=true}
+
+\author{Jan Stephan}
+\title{Neuerungen in C++11, 14 und 17 im Kontext Performance-Analyse von HPC-Anwendungen}
+\matno{3755136}
+\betreuer{Ronny Brendel}
+
+\begin{document}
+
+\include{introduction}
+\section{Example: CUDA Vector Addition} 
+\section{Example: Producer-Consumer-Queue}
+\section{Support in Score-P and Vampir}
+\include{cpp17}
+\section{Additional Literature}
+
+\bibliography{bibliography.bib}{}
+\bibliographystyle{plain}
+\end{document}
