@@ -1,0 +1,198 @@
+\begin{appendix}
+
+\section{Basic Blowfish Implementation}\label{app:blowfish}
+
+\subsection{blowfish.h}
+
+\begin{lstlisting}[language=C++]
+namespace bf
+{
+    constexpr auto rounds = 16;
+    
+    struct key {
+        array<uint32_t, rounds + 2> p;
+        array<uint32_t, 4 * 256> s;
+    };
+    
+    enum class enc {
+        encrypt,
+        decrypt
+    };
+    
+    auto set_key(const vector<uint8_t>& data) -> key;
+    auto encrypt(array<uint32_t, 2>& data, const key& k) -> void;
+    auto decrypt(array<uint32_t, 2>& data, const key& k) -> void;
+    
+    auto ecb_encrypt(const vector<uint8_t>& in, vector<uint8_t>& out, const key& k, enc e) -> void;
+}
+\end{lstlisting}
+
+\subsection{ecb.cpp}
+
+\begin{lstlisting}[language=C++]
+namespace bf
+{
+    namespace
+    {
+        template <class OutputIt>
+        inline auto n2l(OutputIt& c, std::uint32_t& l) -> void
+        {
+            l = static_cast<uint32_t>(*(c++)) << 24L;
+            l |= static_cast<uint32_t>(*(c++)) << 16L;
+            l |= static_cast<uint32_t>(*(c++)) << 8L;
+            l |= static_cast<uint32_t>(*(c++));
+        }
+        
+        template <class InputIt>
+        inline auto l2n(std::uint32_t l, InputIt& c) -> void
+        {
+            *(c++) = static_cast<uint32_t>((l >> 24L) & 0xFF);
+            *(c++) = static_cast<uint32_t>((l >> 16L) & 0xFF);
+            *(c++) = static_cast<uint32_t>((l >> 8L) & 0xFF);
+            *(c++) = static_cast<uint32_t>(l & 0xFF);
+        }
+    }
+    
+    auto ecb_encrypt(const vector<uint8_t>& in, vector<uint8_t>& out, const key& k, enc e) -> void
+    {
+        auto l = uint32_t{};
+        auto d = array<uint32_t, 2>{};
+        auto in_it = begin(in);
+
+        n2l(in_it, l);
+        d.at(0) = l;
+        
+        n2l(in_it, l);
+        d.at(1) = l;
+        
+        if(e == enc::encrypt)
+            encrypt(d, k);
+        else
+            decrypt(d, k);
+            
+        auto out_it = begin(out);
+        
+        l = d.at(0);
+        l2n(l, out_it);
+        
+        l = d.at(1);
+        l2n(l, out_it);
+        
+        l = 0;
+        d.at(0) = 0;
+        d.at(1) = 0;
+    }
+\end{lstlisting}
+
+\subsection{encrypt.cpp}
+
+\begin{lstlisting}[language=C++]
+namespace bf
+{
+    namespace
+    {
+        template <class InputIt, class S>
+        inline auto encr(InputIt pbegin, InputIt pend, const S& s, uint32_t& l, uint32_t& r) -> void
+        {
+            for_each(pbegin, pend, [&l, &r, &s](const auto p)
+                {
+                    l ^= p;
+                    l ^= (((s.at(          ((r >> 24) & 0xFF))  +
+                            s.at(0x0100U + ((r >> 16) & 0xFF))) ^
+                            s.at(0x0200U + ((r >> 8 ) & 0xFF))) +
+                            s.at(0x0300U + ((r      ) & 0xFF)) & 0xFFFFFFFFU);
+                    swap(l, r);
+                }
+            );
+        }
+    }
+    
+    auto encrypt(array<uint32_t, 2>& data, const key& k) -> void
+    {
+        const auto& p = k.p;
+        const auto& s = k.s;
+        auto l = data.at(0) ^ p.at(0);
+        auto r = data.at(1);
+        
+        encr(begin(p) + 1, end(p), s, r, l);
+        
+        r ^= p.at(rounds + 1);
+        
+        data.at(0) = r & 0xFFFFFFFFU;
+        data.at(1) = l & 0xFFFFFFFFU;
+    }
+    
+    auto decrypt(array<uint32_t, 2>& data, const key& k) -> void
+    {
+        const auto& p = k.p;
+        const auto& s = k.s;
+        auto l = data.at(0) ^ p.at(rounds + 1);
+        auto r = data.at(1);
+        
+        encr(rbegin(p), rend(p) - 1, s, r, l);
+        
+        r ^= p.at(0);
+        
+        data.at(0) = r & 0xFFFFFFFFU;
+        data.at(1) = r & 0xFFFFFFFFU;
+    }
+}
+\end{lstlisting}
+
+\subsection{set\_key.cpp}
+
+\begin{lstlisting}[language=C++]
+namespace bf
+{
+    auto set_key(const vector<uint8_t>& data) -> key
+    {
+        // init is a constexpr variable of type key
+        // which contains the numbers of Pi in
+        // hexadecimal notation (see bf_pi.h in
+        // OpenSSL's implementation)
+        auto k = init;
+        
+        auto len = data.size();
+        if(len > (rounds + 2) * 4
+            len = (rounds + 2) * 4;
+            
+        auto d = begin(data);
+        auto e = d + len;
+        
+        for(auto i = 0; i < rounds + 2; ++i)
+        {
+            auto ri = *(d++);
+            if(d >= e)
+                d = begin(data);
+                
+            for(auto j = 0; j < 3; ++j)
+            {
+                ri <<= 8;
+                ri |= *(d++);
+                if(d >= e)
+                    d = begin(data);
+            }
+            
+            k.p.at(i) ^= ri;
+        }
+        
+        auto in = array<uint32_t, 2>{0, 0};
+        for(auto i = 0; i < rounds + 2; i += 2)
+        {
+            encrypt(in, k);
+            k.p.at(i) = in.at(0);
+            k.p.at(i + 1) = in.at(1);
+        }
+        
+        for(auto i = 0; i < 4 * 256; i += 2)
+        {
+            encrypt(in, k);
+            k.s.at(i) = in.at(0);
+            k.s.at(i + 1) = in.at(1);
+        }
+        
+        return k;
+}
+\end{lstlisting}
+
+\end{appendix}

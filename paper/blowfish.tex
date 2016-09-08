@@ -1,0 +1,120 @@
+\section{Improving Maintainability: Implementing the Blowfish Algorithm}
+
+\subsection{The Blowfish Algorithm}
+
+A technical description of the Blowfish algorithm is outside of this paper's scope; the inclined reader may refer to \cite{blowfish} for further information about its theoretical foundation. In the following sections we will port OpenSSL's basic Blowfish algorithm (ECB), as implemented by OpenSSL 1.0.2h.
+
+\subsection{Maintainability Improvements}
+
+As noted before (see section \ref{subs:intro_philosophy}) the C++ standard library offers a variety of abstractions that reduce the amount of code needed for specific intents. As Garcia and Stroustrup noted the usage of abstraction based refactoring "improve[s] the performance, flexibility, and maintainability of a large class of programs"\cite{impperf}.
+
+We can utilize these techniques to refactor OpenSSL's Blowfish encryption algorithm into a modern C++ implementation which offers similar performance while reducing the code size.
+
+\subsection{Porting OpenSSL's Implementation}
+
+\subsubsection{Interface}\label{subsub:bf_interface}
+
+OpenSSL offers the following interface for a basic ECB encryption:
+
+\begin{lstlisting}[language=C]
+#define BF_LONG unsigned int // has to be at least 32 bits wide
+#define BF_ROUNDS 16
+
+typedef struct bf_key_st {
+    BF_LONG P[BF_ROUNDS + 2];
+    BF_LONG S[4 * 256];
+} BF_KEY;
+
+void BF_set_key(BF_KEY *key, int len, const unsigned char *data);
+void BF_encrypt(BF_LONG *data, const BF_KEY *key);
+void BF_decrypt(BF_LONG *data, const BF_KEY *key);
+
+void BF_ecb_encrypt(const unsigned char *in, unsigned char *out, const BF_KEY *key, int enc);
+\end{lstlisting}
+
+This C interface can be changed to the following to remove the need for pointers, function prefixes and the preprocessor:
+
+\begin{lstlisting}[language=C++]
+// use namespaces to prevent pollution of the global namespace
+namespace bf
+{
+    // use real compile time constants
+    constexpr auto rounds = 16;
+    
+    // use portable integer types and std::array instead of plain arrays
+    struct key {
+        array<uint32_t, rounds + 2> p;
+        array<uint32_t, 4 * 256> s;
+    };
+    
+    // use strongly-typed enums instead of integers for function selection
+    enum class enc {
+        encrypt,
+        decrypt
+    };
+    
+    // use std::vector for arbitrary lengths
+    auto set_key(const vector<uint8_t>& data) -> key;
+    // use std::array for compile-time lengths and take key by reference
+    auto encrypt(array<uint32_t, 2>& data, const key& k) -> void;
+    auto decrypt(array<uint32_t, 2>& data, const key& k) -> void;
+    
+    auto ecb_encrypt(const vector<uint8_t>& in, vector<uint8_t>& out, const key& k, enc e) -> void;
+}
+\end{lstlisting}
+
+\subsubsection{Implementation}
+
+In this section we will cover the actual porting of the algorithm's implementation; however, an in-depth explanation is beyond the scope of this document. A full implementation is provided in Appendix \ref{app:blowfish}.
+
+\paragraph{Key Creation}
+
+At the program startup OpenSSL sets up a \texttt{static const BF\_KEY} variable whose fields are initialized with values derived from the hexadecimal digits of pi. When first creating a \texttt{BF\_KEY} OpenSSL will \texttt{memcpy} this variable to the pointer passed to the function:
+
+\begin{lstlisting}[language=C]
+static const BF_KEY bf_init = { /* ... */ };
+
+void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
+{
+    memcpy(key, &bf_init, sizeof(BF_KEY));
+    // ...
+}
+\end{lstlisting}
+
+This \texttt{memcpy} would not be necessary even in plain C; a simple assignment expresses intent in a better way and enables more optimizations by the compiler:
+
+\begin{lstlisting}[language=C]
+static const BF_KEY bf_init = { /* ... */};
+
+void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
+{
+    *key = bf_init;
+    // ...
+}
+\end{lstlisting}
+
+As \texttt{bf\_init}'s values are hard-coded we can easily declare them compile time constants. Since these values are only needed once they also do not need static storage duration and we can easily put them into an anonymous namespace to prevent any external dependencies on them. After adjusting the code according to the C++ interface mentioned in section \ref{subsub:bf_interface} the result looks similar to the following excerpt:
+
+\begin{lstlisting}[language=C++]
+namespace bf
+{
+    namespace
+    {
+        constexpr auto init = key { /* ... */ };
+    }
+    
+    auto set_key(const vector<uint8_t>& data) -> key
+    {
+        auto k = init;
+        // ...
+    }
+}
+\end{lstlisting}
+
+The rest of the code remains mostly unchanged as it largely consists of binary operations.
+
+\paragraph{Encryption and Decryption}
+
+x
+
+\subsubsection{Comparison}
