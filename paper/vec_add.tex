@@ -1,0 +1,95 @@
+\section{Example: CUDA Vector Addition}
+
+To illustrate some of the features introduced in C++11 and C++14 we will implement a simple vector addition with the CUDA toolkit.
+
+\subsection{The Kernel}
+
+A kernel which implements a vector addition could look like the following:
+
+\begin{lstlisting}
+__global__ void vector_add(const int* a, const int* b, int* c, size_t size)
+{
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if(i < size)
+        c[i] = a[i] + b[i];
+}
+\end{lstlisting}
+
+As of CUDA 7 the toolkit supports a subset of the features introduced in C++11. We will use this subset to change the kernel as follows:
+
+\begin{lstlisting}
+__global__ void vector_add(const std::int32_t* a, const std::int32_t* b, std::int32_t* c, std::size_t size)
+{
+    auto i = threadIdx.x + blockIdx.x * blockDim.x;
+    if(i < size)
+        c[i] = a[i] + b[i];
+}
+\end{lstlisting}
+
+\subsubsection{Fixed Width Integer Types}
+
+The first notable change is the migration from plain \texttt{int} to \texttt{std::int32\_t}. The latter is called a \textit{fixed width integer type} and was introduced with the C++11 standard which in turn based this inclusion on the C99 standard. These types (ranging from 8bit to 64bit types, both signed and unsigned), along with counterparts optimized for size and performance, can be found in \texttt{<cstdint>}.
+
+\subsubsection{The \texttt{auto} Keyword}
+
+In C++11 the already existing keyword \texttt{auto} changed its meaning. In old standards it denoted the storage class of a variable:
+
+\begin{lstlisting}
+void f()
+{
+    auto int i; // automatic storage class, lives until the end of the scope
+    static int j; // static storage class, permanent duration
+}
+\end{lstlisting}
+
+As the usage of this keyword was largely redundant its meaning was changed in C++11 to deduce the type of an expression:
+
+\begin{lstlisting}
+auto i = 0; // i is deduced to be an int
+auto f1 = float(0); // committing to a specific type
+auto f2 = 0.f; // committing to a specific type, shorthand
+auto two = std::sqrt(4); // type deduction from return value
+\end{lstlisting}
+
+\texttt{auto} can also be used in combination with functions:
+
+\begin{lstlisting}
+auto f() -> void;
+
+template <class T, class U>
+auto add(T a, U b) -> decltype(a + b)
+{
+    return a + b;
+}
+\end{lstlisting}
+
+The \textit{trailing return type} syntax is especially useful when used with templates, as the second example shows. With C++14 the return type is no longer needed (as long as the function body is visible to the compiler):
+
+\begin{lstlisting}
+template <class T, class U>
+auto add(T a, U b)
+{
+    // add's return value deduced to be decltype(a + b)
+    return a + b;
+}
+\end{lstlisting}
+
+According to Herb Sutter\cite{sutteraaa} one should follow an \textit{Almost Always Auto (AAA)} pattern.
+
+\subsection{Host Memory Management}
+
+
+
+\subsubsection{The \texttt{constexpr} Keyword}
+\subsubsection{Smart Pointers}
+
+
+\subsection{Device Memory Management}
+
+\subsubsection{The \texttt{using} Keyword}
+
+\subsection{Launching the Kernel}
+
+\subsubsection{Variadic Templates}
+
+\subsection{Overview}
