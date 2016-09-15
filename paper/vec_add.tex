@@ -78,7 +78,37 @@ According to Herb Sutter\cite{sutteraaa} one should follow an \textit{Almost Alw
 
 \subsection{Host Memory Management}
 
+\subsubsection{Vector Creation}
 
+\begin{lstlisting}
+#define SIZE 1000;
+
+int* host_a = new int[SIZE];
+int* host_b = new int[SIZE];
+
+for(size_t i = 0; i < SIZE; ++i)
+{
+    host_a[i] = std::rand();
+    host_b[i] = std::rand();
+}
+
+// ...
+
+delete[] host_b;
+delete[] host_a;
+\end{lstlisting}
+
+\begin{lstlisting}
+constexpr auto size = 1000;
+
+auto host_a = std::make_unique<std::int32_t[]>(size);
+auto host_b = std::make_unique<std::int32_t[]>(size);
+
+std::generate(a.get(), a.get() + size, std::rand);
+std::generate(b.get(), b.get() + size, std::rand);
+
+// ...
+\end{lstlisting}
 
 \subsubsection{The \texttt{constexpr} Keyword}
 \subsubsection{Smart Pointers}
@@ -92,4 +122,39 @@ According to Herb Sutter\cite{sutteraaa} one should follow an \textit{Almost Alw
 
 \subsubsection{Variadic Templates}
 
+\begin{lstlisting}
+
+\end{lstlisting}
+
+\begin{lstlisting}
+template <class... Args>
+auto cuda_launch(void (*kernel)(Args...), Args... args) -> void
+{
+    // omitted: calculate grid_size and block_size
+    kernel<<<grid_size, block_size>>>(args...);
+}
+\end{lstlisting}
+
 \subsection{Overview}
+
+\begin{lstlisting}
+constexpr auto size = 1000;
+
+auto host_a = make_host_ptr<std::int32_t>(size);
+auto host_b = make_host_ptr<std::int32_t>(size);
+auto host_c = make_host_ptr<std::int32_t>(size);
+
+auto dev_a = make_device_ptr<std::int32_t>(size);
+auto dev_b = make_device_ptr<std::int32_t>(size);
+auto dev_c = make_device_ptr<std::int32_t>(size);
+
+std::generate(host_a.get(), host_a.get() + size, std::rand);
+std::generate(host_b.get(), host_b.get() + size, std::rand);
+
+cudaMemcpy(dev_a.get(), host_a.get(), size * sizeof(std::int32_t), cudaMemcpyHostToDevice);
+cudaMemcpy(dev_b.get(), host_b.get(), size * sizeof(std::int32_t), cudaMemcpyHostToDevice);
+
+cuda_launch(vec_add, dev_a.get(), dev_b.get(), dev_c.get(), size);
+
+cudaMemcpy(host_c.get(), dev_c.get(), size * sizeof(std::int32_t), cudaMemcpyDeviceToHost);
+\end{lstlisting}

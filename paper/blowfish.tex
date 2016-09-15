@@ -1,8 +1,8 @@
 \section{Improving Maintainability: Implementing the Blowfish Algorithm}
 
 \subsection{The Blowfish Algorithm}
-
-A technical description of the Blowfish algorithm is outside of this paper's scope; the inclined reader may refer to \cite{blowfish} for further information about its theoretical foundation. In the following sections we will port OpenSSL's basic Blowfish algorithm (ECB), as implemented by OpenSSL 1.0.2h.
+% ERSTEN SATZ UMFORMULIEREN
+A technical description of the Blowfish algorithm is outside of this paper's scope; the inclined reader may refer to \cite{blowfish} for further information about its theoretical foundation. In the following sections we will port OpenSSL's basic Blowfish algorithm (ECB), as implemented by OpenSSL 1.0.2h. %REFERENZ!!!
 
 \subsection{Maintainability Improvements}
 
@@ -115,6 +115,6 @@ The rest of the code remains mostly unchanged as it largely consists of binary o
 
 \paragraph{Encryption and Decryption}
 
-x
+OpenSSL's routines for encryption and decryption of a 64 bit array (containing two 32 bit unsigned integers) call the same macro a 
 
 \subsubsection{Comparison}

@@ -1,9 +1,18 @@
 \documentclass[utf8,hauptseminar]{zihpub}
 
 \usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
+
+\newcommand{\lstfont}[1]{\color{#1}\small\ttfamily}
 
 \lstset{language=C++,
-		basicstyle=\small\ttfamily,
+		showstringspaces=false,
+		backgroundcolor=\color{lightgray},
+		basicstyle=\lstfont{black},
+		keywordstyle=\lstfont{magenta},
+		stringstyle=\lstfont{orange},
+		emph={decltype, constexpr, cudaMalloc, cudaFree, __global__},
+		emphstyle=\lstfont{magenta},
 		breaklines=true}
 
 \author{Jan Stephan}
@@ -14,7 +23,7 @@
 \begin{document}
 
 \include{introduction}
-\section{Example: CUDA Vector Addition} 
+\include{vec_add} 
 \section{Example: Producer-Consumer-Queue}
 \include{blowfish}
 \section{Support in Score-P and Vampir}
