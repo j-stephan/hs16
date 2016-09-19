@@ -1,7 +1,10 @@
 \documentclass[utf8,hauptseminar]{zihpub}
 
+\usepackage{datetime}
 \usepackage{listings}
 \usepackage[dvipsnames]{xcolor}
+
+\newdateformat{titledate}{\ordinalnum{\THEDAY} \monthname[\themonth], \THEYEAR}
 
 \newcommand{\lstfont}[1]{\color{#1}\small\ttfamily}
 
@@ -16,7 +19,7 @@
 		breaklines=true}
 
 \author{Jan Stephan}
-\title{Neuerungen in C++11, 14 und 17 im Kontext Performance-Analyse von HPC-Anwendungen}
+\title{Innovations in C++11, 14 und 17 in the Context of Performance Analysis of HPC Applications}
 \matno{3755136}
 \betreuer{Ronny Brendel}
 
@@ -24,7 +27,7 @@
 
 \include{introduction}
 \include{vec_add} 
-\section{Example: Producer-Consumer-Queue}
+\section{Example: Producer/Consumer Queue}
 \include{blowfish}
 \section{Support in Score-P and Vampir}
 \include{cpp17}

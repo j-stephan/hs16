@@ -459,7 +459,7 @@ Wissenschaftlichen Hochleistungsrechnen''}
 \if@german%
   \RequirePackage[american,main=ngerman]{babel}
 \else
-  \RequirePackage[main=american,ngerman]{babel}
+  \RequirePackage[main=british,ngerman]{babel}
 \fi
 
 
@@ -576,11 +576,11 @@ Wissenschaftlichen Hochleistungsrechnen''}
 \ifx\@empty\@isreport
   \if@final
     \fancyhead[LO]{\@author}
-    \fancyhead[RE]{\@title}
+    \fancyhead[RE]{\@pageheadertitle}
   \else
     \if@twoside
       \fancyhead[LO]{\@author}
-      \fancyhead[RE]{\@title}
+      \fancyhead[RE]{\@pagertitle}
     \else
       \fancyhead[L]{\@author -- \@title}
     \fi
@@ -920,7 +920,9 @@ Wissenschaftlichen Hochleistungsrechnen''}
 	      \fancyhead[LO]{\@author}
 	      \fancyhead[RE]{\@title}
 	    \else
-	      \fancyhead[L]{\@author -- \@title}
+          % remove ugly title
+	      %\fancyhead[L]{\@author -- \@title}
+          \fancyhead[L]{\nouppercase{\leftmark}}
 	    \fi
 	  \fi
 	\else

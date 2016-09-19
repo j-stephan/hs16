@@ -6,7 +6,7 @@ A technical description of the Blowfish algorithm is outside of this paper's sco
 
 \subsection{Maintainability Improvements}
 
-As noted before (see section \ref{subs:intro_philosophy}) the C++ standard library offers a variety of abstractions that reduce the amount of code needed for specific intents. As Garcia and Stroustrup noted the usage of abstraction based refactoring "improve[s] the performance, flexibility, and maintainability of a large class of programs"\cite{impperf}.
+As noted before (see Section \ref{subs:intro_philosophy}) the C++ standard library offers a variety of abstractions that reduce the amount of code needed for specific intents. As Garcia and Stroustrup noted the usage of abstraction based refactoring "improve[s] the performance, flexibility, and maintainability of a large class of programs"~\cite{impperf}.
 
 We can utilize these techniques to refactor OpenSSL's Blowfish encryption algorithm into a modern C++ implementation which offers similar performance while reducing the code size.
 
@@ -93,7 +93,7 @@ void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
 }
 \end{lstlisting}
 
-As \texttt{bf\_init}'s values are hard-coded we can easily declare them compile time constants. Since these values are only needed once they also do not need static storage duration and we can easily put them into an anonymous namespace to prevent any external dependencies on them. After adjusting the code according to the C++ interface mentioned in section \ref{subsub:bf_interface} the result looks similar to the following excerpt:
+As \texttt{bf\_init}'s values are hard-coded we can easily declare them compile time constants. Since these values are only needed once they also do not need static storage duration and we can easily put them into an anonymous namespace to prevent any external dependencies on them. After adjusting the code according to the C++ interface mentioned in Section \ref{subsub:bf_interface} the result looks similar to the following excerpt:
 
 \begin{lstlisting}[language=C++]
 namespace bf

@@ -8,7 +8,7 @@
 
 \subsubsection{Parallel \texttt{find}}
 
-With the introduction of C++17 \texttt{std::find} will have the following signatures:
+With the introduction of C++17, \texttt{std::find} will have the following signatures:
 
 \begin{lstlisting}[language=C++]
 template <class InputIt, class T>
@@ -19,7 +19,7 @@ InputIt find(ExecutionPolicy&& policy, InputIt first, InputIt last,
     const T& value);
 \end{lstlisting}
 
-While the first variant will not be parallelized, the second may be executed with the parallel execution policy type. This raises the question how a parallel \texttt{std::find} is implemented internally. As of the writing of this document most of the commonly available standard libraries do not support the proposed parallel algorithms; however, Microsoft provided a reference implementation. Internally, their parallel \texttt{find} works in a similar fashion to the code in Listing~\ref{lst:find_impl}: After executing the function the runtime will spawn a number of threads and split the container amongst them. Each thread then processes his part of the container and sets a shared atomic variable if the value in question was found, unless a better match was found by another thread already.
+While the first variant will not be parallelized, the second may be executed with the parallel execution policy type. This raises the question how a parallel \texttt{std::find} is implemented internally. As of the writing of this document most of the commonly available standard libraries do not support the proposed parallel algorithms; however, Microsoft provided a reference implementation. Internally, their parallel \texttt{find} works in a similar fashion to the code in Listing~\ref{lst:find_impl}: After executing the function the runtime will spawn a number of threads and split the container amongst them. Each thread then processes his part of the container and sets a shared atomic variable if the value in question was found, unless a better match was found by another thread, already.
 
 \begin{lstlisting}[caption={A Microsoft-inspired parallel find implementation},label={lst:find_impl},language=C++]
 template <class InputIt, class T>
