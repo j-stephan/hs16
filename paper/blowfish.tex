@@ -93,7 +93,7 @@ void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
 }
 \end{lstlisting}
 
-As \texttt{bf\_init}'s values are hard-coded we can easily declare them compile time constants. Since these values are only needed once they also do not need static storage duration and we can easily put them into an anonymous namespace to prevent any external dependencies on them. After adjusting the code according to the C++ interface mentioned in Section \ref{subsub:bf_interface} the result looks similar to the following excerpt:
+As \texttt{bf\_init}'s values are hard-coded we can easily declare them compile time constants. Since these values are only needed once they also do not need to live outside of the source file which is why we can easily put them into an anonymous namespace to prevent any external dependencies on them\footnote{Unnamed (anonymous) namespaces have the same effect as the \texttt{static} keyword on variables and functions. However, they can also be used for types which makes them superior to \texttt{static}; it is impossible to declare a \texttt{static struct}, for example.}. After adjusting the code according to the C++ interface mentioned in Section \ref{subsub:bf_interface} the result looks similar to the following excerpt:
 
 \begin{lstlisting}[language=C++]
 namespace bf

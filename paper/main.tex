@@ -8,31 +8,33 @@
 
 \newcommand{\lstfont}[1]{\color{#1}\small\ttfamily}
 
-\lstset{language=C++,
+\lstset{language=[11]C++,
 		showstringspaces=false,
-		backgroundcolor=\color{lightgray},
+		frame=lrtb,
+		xleftmargin=\parindent,
 		basicstyle=\lstfont{black},
 		keywordstyle=\lstfont{magenta},
 		stringstyle=\lstfont{orange},
-		emph={decltype, constexpr, cudaMalloc, cudaFree, __global__},
+		emph={cudaMalloc, cudaFree, __global__},
 		emphstyle=\lstfont{magenta},
 		breaklines=true}
 
 \author{Jan Stephan}
-\title{Innovations in C++11, 14 und 17 in the Context of Performance Analysis of HPC Applications}
+\title{Innovations in C++11, 14 and 17 in the Context of Performance Analysis of HPC Applications}
 \matno{3755136}
 \betreuer{Ronny Brendel}
 
 \begin{document}
 
 \include{introduction}
-\include{vec_add} 
-\section{Example: Producer/Consumer Queue}
+\include{vec_add}
+\include{queue}
 \include{blowfish}
-\section{Support in Score-P and Vampir}
+\include{scorep}
 \include{cpp17}
 \section{Additional Literature}
+\bibliography{bibliography.bib}{}
 \include{appendix}
 
-\bibliography{bibliography.bib}{}
+
 \end{document} 
