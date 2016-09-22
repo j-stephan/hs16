@@ -389,4 +389,77 @@ auto main() -> int
 
 \subsection{Synchronization}\label{app:scorep_sync}
 
+\subsubsection{\texttt{std::mutex}}\label{app:scorep_sync_mutex}
+
+\begin{lstlisting}
+#include <iostream>
+#include <mutex>
+
+#include <pthread.h>
+#include <unistd.h>
+
+std::mutex m;
+
+auto f1(void*) -> void*
+{
+    std::lock_guard<std::mutex> l(m);
+    std::cout << "Mutex locked in f1" << std::endl;
+    usleep(20 * 1000);
+    return nullptr;
+}
+
+auto f2(void*) -> void*
+{
+    usleep(10 * 1000);
+    std::lock_guard<std::mutex> l(m);
+    std::cout << "Mutex locked in f2" << std::endl;
+    usleep(20 * 1000);
+    return nullptr;
+}
+\end{lstlisting}
+
+\subsubsection{\texttt{std::condition\_variable}}\label{app:scorep_sync_cv}
+
+\begin{lstlisting}
+#include <algorithm>
+#include <array>
+#include <condition_variable>
+#include <iostream>
+#include <iterator>
+#include <mutex>
+
+#include <pthread.h>
+#include <unistd.h>
+
+std::condition_variable cv;
+std::mutex m;
+
+auto done = false;
+
+auto wait(void*) -> void*
+{
+    std::unique_lock<std::mutex> l(m);
+    std::cout << "Waiting...\n";
+    cv.wait(l, []{ return done; });
+    std::cout << "...finished waiting. done == true\n";
+    return nullptr;
+}
+
+auto signal(void*) -> void*
+{
+}
+
+auto main() -> int
+{
+    auto threads = std::array<pthread_t, 4>{};
+    std::for_each(std::begin(threads), std::begin(threads) + 3, [](auto& t){ pthread_create(&t, nullptr, wait, 0); });
+    pthread_create(&threads[3], nullptr, signal, 0);
+    
+    for(auto&& t : threads)
+        pthread_join(t, nullptr);
+        
+    return 0;
+}
+\end{lstlisting}
+
 \end{appendix}

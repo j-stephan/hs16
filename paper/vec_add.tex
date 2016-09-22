@@ -18,7 +18,7 @@ There are two notable differences to traditional code: firstly the usage of \tex
 
 \subsubsection{Fixed Width Integer Types}
 
-Instead of plain \texttt{int} the kernel parameters have the type \texttt{std::int32\_t}. The latter is called a \textit{fixed width integer type} and was introduced with the C++11 standard~\cite{cpp11std}(§18.4.1) which in turn based this inclusion on the C99 standard~\cite{c99std}(§7.18). These types (ranging from 8-bit to 64-bit types, both signed and unsigned), along with counterparts optimized for size or performance, can be found in \texttt{<cstdint>}.
+Instead of plain \texttt{int} the kernel parameters have the type \texttt{std::int32\_t}. The latter is called a \textit{fixed width integer type} and was introduced with the C++11 standard~\cite{cpp11std}(§18.4.1) which in turn based this inclusion on the C99 standard~\cite{c99std}(§7.18). These types (ranging from 8-bit to 64-bit types, both signed and unsigned), along with counterparts optimized for size or performance, can be found in the header file \texttt{<cstdint>}.
 
 \subsubsection{The \texttt{auto} Keyword}
 
@@ -27,12 +27,12 @@ In C++11 the already existing keyword \texttt{auto} changed its meaning. Prior t
 \begin{lstlisting}
 void f()
 {
-    auto int i; // automatic storage class, lives until end of scope
-    static int j; // static storage class, permanent duration
+    auto int i; // local variable, lives until end of scope
+    static int j; // static variable, permanent duration
 }
 \end{lstlisting}
 
-As the usage of this keyword was obviously largely redundant its meaning was changed in C++11 \cite{cpp11std}(§7.1.6.4) to deduce the type of an expression:
+As the usage of this keyword was largely redundant its meaning was changed in C++11 \cite{cpp11std}(§7.1.6.4) to deduce the type of an expression:
 
 \begin{lstlisting}
 auto i = 0; // i is deduced to be an int
@@ -53,7 +53,7 @@ auto add(T a, U b) -> decltype(a + b)
 }
 \end{lstlisting}
 
-The \textit{trailing return type} syntax is especially useful when used with templates, as the second example shows. \texttt{decltype} is the counterpart to \texttt{auto} as it returns the type of an expression (which must be evaluable at compile-time).
+The \textit{trailing return type} syntax is especially needed when used with templates, as the second example shows. \texttt{decltype} is the counterpart to \texttt{auto} as it returns the type of an expression (which must be evaluable at compile-time).
 
 With C++14 the return type is no longer needed (as long as the function body is visible to the compiler):
 
@@ -66,7 +66,7 @@ auto add(T a, U b)
 }
 \end{lstlisting}
 
-According to Herb Sutter~\cite{sutteraaa} one should follow an \textit{Almost Always Auto (AAA)} pattern, i.e. use \texttt{auto} wherever possible.
+According to Herb Sutter~\cite{sutteraaa} one should follow an \textit{Almost Always Auto (AAA)} pattern, i.e. use \texttt{auto} wherever possible. It can also be shown that the adoption of this practice leads to better performing and more secure code~\cite{sutter_cppcon}.
 
 \subsection{Host Memory Management}
 
@@ -146,7 +146,7 @@ auto sum(std::uint32_t)
 }
 \end{lstlisting}
 
-Now every context in which \texttt{sum} was evaluated at compile-time is broken. However, this is the fault of developer A as he never promised that the function was usable in such a context. With \texttt{constexpr} he could state his intent in a better and more consistent way.
+Now every context in which \texttt{sum} was evaluated at compile-time is broken. However, this is the fault of developer A as he never promised that the function was usable in such a context. With \texttt{constexpr} he could enforce his intent and prevent other developers from breaking the code base as the compilation would fail.
 
 \subsubsection{Smart Pointers}\label{vec_add:smart_ptr}
 
@@ -279,7 +279,7 @@ By making use of \textit{variadic templates} (which will be discussed in Section
 
 Variadic templates are a language extensions introduced in C++11~\cite{cpp11std}(§14.2.15). They are somewhat similar to variadic functions known from C (see \texttt{printf} for an example), except that their ``parameter packs'' are unpacked at compile-time which leads to different function signatures for different parameters. Additionally, they are usable outside of functions as well, for example in template meta programming.
 
-\subsection{Overview}
+\subsection{Summary}
 
 By combining the modernizations mentioned in the previous sections we get the following program:
 
@@ -305,4 +305,4 @@ cuda_launch(vec_add, dev_a.get(), dev_b.get(), dev_c.get(), size);
 cudaMemcpy(host_c.get(), dev_c.get(), size * sizeof(std::int32_t), cudaMemcpyDeviceToHost);
 \end{lstlisting}
 
-This is much more idiomatic than its C equivalent while providing the benefits of RAII with regard to the CUDA memory. By providing own versions of \texttt{unique\_ptr} with additional metadata it would be easy to wrap the calls to \texttt{cudaMemcpy} and remove the need for size calculations and \texttt{enum} values for the copy direction. However, that is out of the scope of this document.
+This is much more idiomatic than its C equivalent while providing the benefits of \gls{raii} with regard to the CUDA memory. By providing own versions of \texttt{unique\_ptr} with additional metadata it would be easy to wrap the calls to \texttt{cudaMemcpy} and remove the need for size calculations and \texttt{enum} values for the copy direction. However, that is out of the scope of this document.
