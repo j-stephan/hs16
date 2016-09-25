@@ -462,4 +462,106 @@ auto main() -> int
 }
 \end{lstlisting}
 
+\subsection{File I/O}
+
+\subsubsection{\texttt{std::fstream} in binary mode}\label{app:scorep_binary_fstream}
+
+\begin{lstlisting}
+#include <algorithm>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+
+auto main() -> int
+{
+    auto path = std::string{"test.bin"};
+    auto output = std::vector<int>{};
+    auto input = std::vector<int>{};
+    output.resize(1000);
+    input.resize(1000);
+    
+    std::generate(std::begin(output), std::end(output), std::rand);
+    
+    {
+        std::ofstream out{path.c_str(), std::ios::binary};
+        out.write(reinterpret_cast<const char*>(output.data()), output.size() * sizeof(int));
+    }
+    {
+        std::ifstream in{path.c_str(), std::ios::binary};
+        in.read(reinterpret_cast<char*>(input.data()), input.size() * sizeof(int));
+    }
+    
+    if(!std::equal(std::begin(output), std::end(output), std::begin(input)))
+        std::cerr << "Error: Input does not match output." << std::endl;
+        
+    return 0;
+}
+\end{lstlisting}
+
+\subsubsection{\texttt{std::fstream} in text mode}\label{app:scorep_text_fstream}
+
+\begin{lstlisting}
+#include <fstream>
+#include <iostream>
+#include <string>
+
+auto main() -> int
+{
+    auto path = std::string{"test.txt"};
+    
+    {
+        std::ofstream out{path.c_str()};
+        out << "Lorem ipsum dolor sit amet, consetetur sadipscing elitir, sed diam nonumy\n"
+        << "eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam\n"
+		<< "voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita\n"
+		<< "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem\n"
+		<< "ipsum dolor sit amet, consetetur sadipscing elitir, sed diam nonumy eirmod"
+		<< std::endl;
+	}
+	{
+		std::ifstream in{path.c_str()};
+		in >> std::cout.rdbuf();
+	}
+	
+	return 0;
+}
+\end{lstlisting}
+
+\subsubsection{\texttt{C-style I/O}}\label{app:scorep_c_io}
+
+\begin{lstlisting}
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <vector>
+
+auto main() -> int
+{
+    auto path = std::string{"test.bin"};
+    auto output = std::vector<int>{};
+    auto input = std::vector<int>{};
+    output.resize(1000);
+    input.resize(1000);
+    
+    std::generate(std::begin(output), std::end(output), std::rand);
+    
+    auto out = std::fopen(path.c_str(), "wb");
+    std::fwrite(output.data(), sizeof(int), output.size(), out);
+    std::fclose(out);
+    
+    auto in = std::fopen(path.c_str(), "rb");
+    std::fread(input.data(), sizeof(int), input.size(), in);
+    std::fclose(in);
+    
+    if(!std::equal(std::begin(output), std::end(output), std::begin(input)))
+        std::cerr << "Error: Input does not match output." << std::endl;
+        
+    return 0;
+}
+\end{lstlisting}
+
 \end{appendix}

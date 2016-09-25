@@ -688,19 +688,19 @@ Wissenschaftlichen Hochleistungsrechnen''}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Style fuer Bibliography
-\if@bibnum
+%\if@bibnum
   \if@german
     \bibliographystyle{plaindin}
   \else
     \bibliographystyle{plain}
   \fi
-\else
-  \if@german
-    \bibliographystyle{alphadin}
-  \else
-    \bibliographystyle{alpha}
-  \fi
-\fi
+%\else
+ % \if@german
+  %  \bibliographystyle{alphadin}
+  %\else
+   % \bibliographystyle{alpha}
+  %\fi
+%\fi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % List of tables/figures hinzu falls gewuenscht
 \if@lof

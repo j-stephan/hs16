@@ -28,12 +28,14 @@ $ SCOREP_ENABLE_TRACING=1 ./future_default
           calls are instrumented.[1]    8405 abort (core dumped)
 \end{verbatim}
 
-The lazy evaluation test case executes successfully; however, as the code in question is not executed in a separate thread the inspection of Score-P's trace file show nothing of interest (see Figures \ref{scorep:conc_async_lazy_timeline} and \ref{scorep:conc_async_lazy_summary}).
+Unfortunately, imitating \texttt{std::async}'s behaviour with Pthreads for the sake of this document is impossible as the thread management behind the call is implementation-defined: the library may spawn simple Pthreads internally, rely on a thread pool or do something entirely different.
+
+The lazy evaluation test case executes successfully; however, because the code in question is not executed in a separate thread the inspection of Score-P's trace file shows nothing noteworthy (see Figures \ref{scorep:conc_async_lazy_timeline} and \ref{scorep:conc_async_lazy_summary}).
 
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=0.9\textwidth]{img/scorep_async_lazy_timeline.png}
-		\caption{Timeline for \texttt{std::async} with lazy evaluation}
+		\caption{Master timeline for \texttt{std::async} with lazy evaluation}
 		\label{scorep:conc_async_lazy_timeline}
 	\end{center}
 \end{figure}
@@ -41,7 +43,7 @@ The lazy evaluation test case executes successfully; however, as the code in que
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=0.9\textwidth]{img/scorep_async_lazy_summary.png}
-		\caption{Summary for \texttt{std::async} with lazy evaluation}
+		\caption{Function summary for \texttt{std::async} with lazy evaluation}
 		\label{scorep:conc_async_lazy_summary}
 	\end{center}
 \end{figure}
@@ -52,7 +54,39 @@ When compared to \texttt{std::async} \texttt{std::thread} follows a much more ``
 
 There is are two test cases for \texttt{std::thread}: the first spawns a thread and joins it afterwards (Appendix \ref{app:conc_thread_join}), the second spawns a thread and detaches it, making it unjoinable (Appendix \ref{app:conc_thread_detach}).
 
-Both test cases fail to execute and produce the same error message already known from Section \ref{scorep:conc_async}.
+Both test cases fail to execute and produce the same error message already known from Section \ref{scorep:conc_async}. Because \texttt{std::thread} simply wraps a Pthread (at least in libstdc++) its behaviour can be emulated (see Figures \ref{scorep:conc_pthread_join_timeline} and \ref{scorep:conc_pthread_join_summary} and Figures \ref{scorep:conc_pthread_detach_timeline} and \ref{scorep:conc_pthread_detach_summary}, respectively).
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_join_timeline.png}
+		\caption{Emulated master timeline for a joined \texttt{std::thread}}
+		\label{scorep:conc_pthread_join_timeline}
+	\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_join_summary.png}
+		\caption{Emulated function summary for a joined \texttt{std::thread}}
+		\label{scorep:conc_pthread_join_summary}
+	\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_detach_timeline.png}
+		\caption{Emulated master timeline for a detached \texttt{std::thread}}
+		\label{scorep:conc_pthread_detach_timeline}
+	\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_detach_summary.png}
+		\caption{Emulated function summary for a detached \texttt{std::thread}}
+		\label{scorep:conc_pthread_detach_summary}
+	\end{center}
+\end{figure}
 
 \subsubsection{Summary}
 
@@ -75,7 +109,7 @@ Score-P on the other hand is not able to fully parse the instruction flow correc
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_mutex_timeline.png}
-		\caption{Timeline for thread synchronization with \texttt{std::mutex}}
+		\caption{Master timeline for thread synchronization with \texttt{std::mutex}}
 		\label{scorep:sync_pthread_mutex_timeline}
 	\end{center}
 \end{figure}
@@ -83,7 +117,7 @@ Score-P on the other hand is not able to fully parse the instruction flow correc
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_mutex_summary.png}
-		\caption{Summary for thread synchronization with \texttt{std::mutex}}
+		\caption{Function summary for thread synchronization with \texttt{std::mutex}}
 		\label{scorep:sync_pthread_mutex_summary}
 	\end{center}
 \end{figure}
@@ -99,7 +133,7 @@ Like the simpler \texttt{std::mutex} test case (see Section \ref{scorep:sync_mut
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_cv_timeline.png}
-		\caption{Timeline for thread synchronization with \texttt{std::condition\_variable}}
+		\caption{Master timeline for thread synchronization with \texttt{std::condition\_variable}}
 		\label{scorep:sync_pthread_cv_timeline}
 	\end{center}
 \end{figure}
@@ -107,11 +141,112 @@ Like the simpler \texttt{std::mutex} test case (see Section \ref{scorep:sync_mut
 \begin{figure}[htbp]
 	\begin{center}
 		\includegraphics[width=0.9\textwidth]{img/scorep_pthread_cv_summary.png}
-		\caption{Summary for thread synchronization with \texttt{std::condition\_variable}}
+		\caption{Function summary for thread synchronization with \texttt{std::condition\_variable}}
 		\label{scorep:sync_pthread_cv_summary}
 	\end{center}
 \end{figure}
 
 \subsubsection{Summary}
 
-While Score-P's support for synchronization primitives is better than its support for C++11 threads it is not perfect. Due to aggressive compiler inlining the \gls{stl} functions are optimized away before Score-P can instrument them. Unfortunately, changing this behaviour would be quite hard as this requires either a change to the way instrumentation is currently done or a special codepaths for the \gls{stl} mechanics.
+While Score-P's support for synchronization primitives is better than its support for C++11 threads it is not perfect. Due to aggressive compiler inlining the \gls{stl} functions are optimized away before Score-P can instrument them. In order to change this Score-P would need a mechanism to instrument the \gls{stl}'s interface without automatically instrumenting all the implementation details behind the interface because those are likely to be inlined as well.
+
+\subsection{File I/O}
+
+While file I/O is not a new concept and has not changed with C++11 its performance penalties are still an important issue to consider in an HPC context. In this section file I/O using binary file streams, text file streams and (for comparison) the C API will be evaluated.
+
+\subsubsection{Binary I/O}\label{scorep:binary_fstream}
+
+The first test case (see Appendix \ref{app:scorep_binary_fstream}) generates a \texttt{std::vector} with random integer values and writes them to a file. The file itself is created and modified by a \texttt{std::ofstream} opened in binary mode. It is then closed and opened again in binary mode by a \texttt{std::ifstream} which then proceeds to read its contents into another \texttt{std::vector}.
+
+As the Figures \ref{scorep:binary_fstream_timeline} and \ref{scorep:binary_fstream_summary} show all of the aforementioned  are ignored entirely by Score-P's instrumentation.
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_binary_fstream_timeline.png}
+		\caption{Master timeline for file operations using \texttt{std::fstream} in binary mode}
+		\label{scorep:binary_fstream_timeline}
+	\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_binary_fstream_summary.png}
+		\caption{Function summary for file operations using \texttt{std::fstream} in binary mode}
+		\label{scorep:binary_fstream_summary}
+	\end{center}
+\end{figure}
+
+\subsubsection{Text I/O}
+
+The second test case (see Appendix \ref{app:scorep_text_fstream}) uses a \texttt{std::ofstream} in text mode to output a text to a file. This file is then closed and reopened by a \texttt{std::ifstream} in text mode, the contents are printed to \texttt{stdout}.
+
+Again, Score-P fails to instrument any of the instructions (Figures \ref{scorep:text_fstream_timeline} and \ref{scorep:text_fstream_summary}).
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_text_fstream_timeline.png}
+		\caption{Master timeline for file operations using \texttt{std::fstream} in text mode}
+		\label{scorep:text_fstream_timeline}
+	\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_text_fstream_summary.png}
+		\caption{Function summary for file operations using \texttt{std::fstream} in text mode}
+		\label{scorep:text_fstream_summary}
+	\end{center}
+\end{figure}
+
+\subsubsection{C-style I/O}
+
+The results of the previous sections may lead to the conclusion that the file operations are inlined by the compiler and thus not visible to Score-P. The third test case implements the functionality from Section \ref{scorep:binary_fstream} using the API inherited from the C standard library (see Appendix \ref{app:scorep_c_io}).
+
+Figures \ref{scorep:c_io_timeline} and \ref{scorep:c_io_summary} show that the issue is not related to inlining. 
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_c_io_timeline.png}
+		\caption{Master timeline for file operations using the C standard library API}
+		\label{scorep:c_io_timeline}
+	\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{img/scorep_text_fstream_summary.png}
+		\caption{Function summary for file operations using the C standard library API}
+		\label{scorep:c_io_summary}
+	\end{center}
+\end{figure}
+
+\subsubsection{Summary}
+
+At the time of writing Score-P does not support the instrumentation of file I/O. In order to change this it would need a way to instrument system calls as those are called internally by standard library file operations.
+
+\subsection{Lambdas}
+
+Lambda functions are especially useful when used in conjunction with the functions found in the header file \texttt{<algorithm>}. This naturally makes them a target of interest in a profiling context. Usually they are inlined because of their small code size which renders them invisible for Score-P.
+
+In cases where inlining does not occur Score-P faces two minor naming issues. The first issue can be reproduced by the following code:
+
+\begin{lstlisting}
+auto my_lambda = [](int i) { //... };
+\end{lstlisting}
+
+If this code does not get inlined for whatever reason\footnote{Unfortunately, this behaviour was not reliably reproducible which is why there is no test case in the appendix. The lambda's symbols are present in the executable but they are still not visible to Score-P.} Score-P will show the following name:
+
+\begin{lstlisting}
+main::{lambda(int)#2}::operator()(int) const
+\end{lstlisting}
+
+This naming is very unintuitive and does not help the user in quickly identifying hotspots. The situation becomes worse when using an \texttt{auto} parameter, a feature introduced in C++14:
+
+\begin{lstlisting}
+auto my_lambda = [](auto i) { // ... };
+
+_ZZ4mainENKUlTE_clIiEEDaS_ // called with "int" parameter
+_ZZ4mainENKUlTE_clIdEEDaS_ // called with "double" parameter
+\end{lstlisting}
+
+Both issues are not Score-P's fault but originate in GCC's naming and mangling scheme. To work around this, Score-P would need to implement a custom naming mechanism which works around the one imposed by GCC.

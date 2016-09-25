@@ -1,8 +1,12 @@
-\section{Example: CUDA Vector Addition}
+\section{Modern C++ by example}
 
-To illustrate some of the features introduced in C++11 and C++14 we will implement a simple vector addition with the CUDA toolkit.
+In this section the most important features of modern C++ will be briefly introduced by example. In the first example a simple CUDA kernel and its surroundings will be implemented in modern C++, in the second example a producer/consumer queue will be created to show C++11's concurrency features. 
 
-\subsection{The Kernel}
+\subsection{CUDA Vector Addition}
+
+To illustrate some of the features introduced in C++11 and C++14 simple vector addition will be implemented, using the CUDA toolkit.
+
+\subsubsection{The Kernel}
 
 Using the subset of C++11 supported by CUDA 7 and later, a kernel which implements a vector addition could look like the following:
 
@@ -16,11 +20,11 @@ __global__ void vector_add(const std::int32_t* a, const std::int32_t* b, std::in
 
 There are two notable differences to traditional code: firstly the usage of \texttt{std::int32\_t} instead of plain \texttt{int} and secondly automatic type deduction with the keyword \texttt{auto}. Both will be presented in the following sections.
 
-\subsubsection{Fixed Width Integer Types}
+\paragraph{Fixed Width Integer Types}
 
 Instead of plain \texttt{int} the kernel parameters have the type \texttt{std::int32\_t}. The latter is called a \textit{fixed width integer type} and was introduced with the C++11 standard~\cite{cpp11std}(§18.4.1) which in turn based this inclusion on the C99 standard~\cite{c99std}(§7.18). These types (ranging from 8-bit to 64-bit types, both signed and unsigned), along with counterparts optimized for size or performance, can be found in the header file \texttt{<cstdint>}.
 
-\subsubsection{The \texttt{auto} Keyword}
+\paragraph{The \texttt{auto} Keyword}
 
 In C++11 the already existing keyword \texttt{auto} changed its meaning. Prior to C++11 it denoted the storage class of a variable, a property inherited from C~\cite{c99std}(§6.7.1):
 
@@ -68,9 +72,9 @@ auto add(T a, U b)
 
 According to Herb Sutter~\cite{sutteraaa} one should follow an \textit{Almost Always Auto (AAA)} pattern, i.e. use \texttt{auto} wherever possible. It can also be shown that the adoption of this practice leads to better performing and more secure code~\cite{sutter_cppcon}.
 
-\subsection{Host Memory Management}
+\subsubsection{Host Memory Management}
 
-\subsubsection{Vector Creation}
+\paragraph{Vector Creation}
 
 Before the kernel can be executed the input vectors need to be initialized, which is typically done on the host. Before the adoption of C++11 the typical approach would have been
 \begin{itemize}
@@ -96,7 +100,7 @@ std::generate(b.get(), b.get() + size, std::rand);
 
 The advantages are clear: the need for the preprocessor is eliminated (see Section \ref{vec_add:constexpr}), the memory is automatically \texttt{free}'d once the pointers go out of scope (see Section \ref{vec_add:smart_ptr}) and the usage of \texttt{std::generate} expresses intent much better than a C-style \texttt{for}-loop.
 
-\subsubsection{The \texttt{constexpr} Keyword}\label{vec_add:constexpr}
+\paragraph{The \texttt{constexpr} Keyword}\label{vec_add:constexpr}
 
 \texttt{constexpr} is a new keyword introduced in C++11~\cite{cpp11std}(§20.7). Its purpose is to provide a hint to the compiler that an expression or function can be evaluated at compile-time:
 
@@ -148,7 +152,7 @@ auto sum(std::uint32_t)
 
 Now every context in which \texttt{sum} was evaluated at compile-time is broken. However, this is the fault of developer A as he never promised that the function was usable in such a context. With \texttt{constexpr} he could enforce his intent and prevent other developers from breaking the code base as the compilation would fail.
 
-\subsubsection{Smart Pointers}\label{vec_add:smart_ptr}
+\paragraph{Smart Pointers}\label{vec_add:smart_ptr}
 
 Smart pointers are an addition to the standard library introduced in C++11~\cite{cpp11std}(§20.7). Currently there are three variants:
 \begin{itemize}
@@ -158,12 +162,13 @@ Smart pointers are an addition to the standard library introduced in C++11~\cite
 \end{itemize}
 
 At the same time the predecessor \texttt{auto\_ptr} was marked as deprecated~\cite{cpp11std}(§D.10).
+\begin{itemize}
+\item \texttt{unique\_ptr} is used when there is only one owner of the pointer, for example in a function-local context, as a class member variable or as nodes of a tree.
 
-\texttt{unique\_ptr} is used when there is only one owner of the pointer, for example in a function-local context, as a class member variable or as nodes of a tree.
+\item \texttt{shared\_ptr} is the counterpart for situations in which shared ownership is needed, for example nodes in a graph were each node can have multiple parents.
 
-\texttt{shared\_ptr} is the counterpart for situations in which shared ownership is needed, for example nodes in a graph were each node can have multiple parents.
-
-\texttt{weak\_ptr} is a ``pointer to pointer''-like construct as it has to be converted to a \texttt{shared\_ptr} before being able to access the memory.
+\item \texttt{weak\_ptr} is a ``pointer to pointer''-like construct as it has to be converted to a \texttt{shared\_ptr} before being able to access the memory.
+\end{itemize}
 
 Memory is allocated in the following way:
 \begin{lstlisting}
@@ -183,7 +188,7 @@ auto weak_arr = std::weak_ptr<std::int32_t[]>(shared_arr);
 
 The big benefit of smart pointers becomes clear when looking at how memory is \texttt{free}'d: This is done automatically once the pointer goes out of scope (\texttt{unique\_ptr}) or the internal reference counter is set to zero (\texttt{shared\_ptr}). This essentially makes \texttt{new} and \texttt{delete} obsolete with no (\texttt{unique\_ptr}) to low (\texttt{shared\_ptr} because of reference counting) overhead.
 
-\subsection{Device Memory Management}
+\subsubsection{Device Memory Management}
 
 After the host memory has been initialized the vectors have to be copied to device memory in order to be processed by the kernel. Traditionally one would
 
@@ -235,7 +240,7 @@ cudaMemcpy(host_c.get(), dev_c.get(), bytes, cudaMemcpyDeviceToHost);
 
 For the sake of clarity error handling is omitted during the entire example. However, in a real-world application one would need to catch all CUDA runtime errors which are returned by calls to all CUDA functions. If an error occurs the allocated memory (both host and device) needs to be \texttt{free}'d before returning, or else memory is leaked. This adds a lot of ``boilerplate'' code which can be avoided entirely by relying on smart pointers.
 
-\subsubsection{The \texttt{using} Keyword}\label{vec_add:using}
+\paragraph{The \texttt{using} Keyword}\label{vec_add:using}
 
 The \texttt{using} keyword was adapted to serve as another form of \texttt{typedef} in C++11~\cite{cpp11std}(§7.1.3/2). It provides some benefits over classic \texttt{typedef} as the following examples show:
 
@@ -260,7 +265,7 @@ auto var = 0;
 using type = int;
 \end{lstlisting}
 
-\subsection{Launching the Kernel}
+\subsubsection{Launching the Kernel}
 
 Once all the preparations are done the kernel can be executed. Usually one would call the kernel, specify the grid and block dimensions and pass the parameters. However, there are small kernels for which a manual configuration of the dimensions are \textit{de facto} useless as it would not provide a performance benefit; in these cases it would be much better to have a simple \texttt{cuda\_launch} function that uses functions provided by the CUDA runtime to calculate these dimensions. Such a function could be implemented as follows:
 
@@ -275,11 +280,11 @@ auto cuda_launch(void (*kernel)(Args...), Args... args) -> void
 
 By making use of \textit{variadic templates} (which will be discussed in Section \ref{vec_add:variadic_templates}) we can pass any kernel with an arbitrary number of arguments to \texttt{cuda\_launch} which will determine the dimension configuration and then execute the kernel accordingly.
 
-\subsubsection{Variadic Templates}\label{vec_add:variadic_templates}
+\paragraph{Variadic Templates}\label{vec_add:variadic_templates}
 
 Variadic templates are a language extensions introduced in C++11~\cite{cpp11std}(§14.2.15). They are somewhat similar to variadic functions known from C (see \texttt{printf} for an example), except that their ``parameter packs'' are unpacked at compile-time which leads to different function signatures for different parameters. Additionally, they are usable outside of functions as well, for example in template meta programming.
 
-\subsection{Summary}
+\subsubsection{Summary}
 
 By combining the modernizations mentioned in the previous sections we get the following program:
 
