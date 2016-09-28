@@ -4,7 +4,7 @@ A simple producer/consumer queue is implemented in the following sections to sho
 
 \subsubsection{C++11 Thread Support}\label{modern:queue:support}
 
-Before the new C++ standard was published in 2011 there was no standardised way to create and manage threads in a platform independent manner. The programmer had to resort to mechanisms specific to the targetted operating system, e.g. Pthreads or Win32 threads, or third-party libraries, like Qt. Furthermore these mechanisms are not idiomatic (with regard to C++) as they are usually plain C interfaces. This means there was no native support for \gls{raii}, making wrappers around these interfaces necessary. Additionally, there was no platform-independent support for atomic operations.
+Before the new C++ standard was published in 2011 there was no standardised way to create and manage threads in a platform independent manner. The programmer had to resort to mechanisms specific to the targetted operating system, e.g. Pthreads or Win32 threads, or third-party libraries like Qt. Furthermore these mechanisms are not idiomatic as they are usually plain C interfaces. This means there was no native support for \gls{raii}, making wrappers around these interfaces necessary. Additionally, there was no platform-independent support for atomic operations.
 
 With the adoption of C++11 the situation changed: the new standard introduced a thread support library~\cite{cpp11std}(§30) and an atomic operations library~\cite{cpp11std}(§29). Both will be briefly introduced in the following sections.
 
@@ -43,7 +43,7 @@ auto f = async(launch::async | launch::deferred, func, params...);
 
 \begin{itemize}
 \item \texttt{std::launch::async} explicitly tells the library to run the specified function in a separate thread. If \texttt{std::future::get} or \texttt{std::future::wait} are called before the task is completed, the calling thread is blocked until the result becomes ready.
-\item \texttt{std::launch::deferred} is the opposite: The function is to be executed on the first call to either \texttt{std::future::get} or \texttt{std::future::wait} -- the passed function is executed in the same thread as its caller.
+\item \texttt{std::launch::deferred} is the opposite: The function is to be executed on the first call to either \texttt{std::future::get} or \texttt{std::future::wait} and in the same thread as its caller.
 \item \texttt{std::launch::async | std::launch::deferred} shows implementation-defined behaviour, i.e. may either spawn a new thread or execute in the same thread as the caller.
 \end{itemize}
 
@@ -81,11 +81,11 @@ auto main() -> int {
 }
 \end{minted}
 
-\noindent In contrast to \texttt{std::async} there is no direct way to obtain the result of the computation; instead it is up to the programmer to obtain the result in a way of his choosing, e.g. by passing an empty object by reference or by handcrafting a solution around \texttt{std::future} and its companion \texttt{std::promise}.
+\noindent In contrast to \texttt{std::async} there is no direct way to obtain the result of the computation; instead it is the programmer's responsibility to obtain the result in a way of his choosing, e.g. by passing an empty object by reference or by handcrafting a solution around \texttt{std::future} and its companion \texttt{std::promise}.
 
-\subsubsection{High-level Synchronization}\label{modern:queue:mutex}
+\subsubsection{High-level Synchronisation}\label{modern:queue:mutex}
 
-Whenever multiple threads are accessing the same data synchronization becomes an important issue. For this purpose the C++11 standard includes synchronization constructs, namely \texttt{std::mutex}, its derivates and locking mechanisms~\cite{cpp11std}(§30.4) as well as \texttt{std::condition\_variable}~\cite{cpp11std}(§30.5). The latter offers a more fine-grained control over blocking or unblocking threads and is always bound to a \texttt{std::mutex}.
+Whenever multiple threads are accessing the same data synchronisation becomes an important issue. For this purpose the C++11 standard includes synchronisation constructs, namely \texttt{std::mutex}, its derivates and locking mechanisms~\cite{cpp11std}(§30.4) as well as \texttt{std::condition\_variable}~\cite{cpp11std}(§30.5). The latter offers a more fine-grained control over blocking or unblocking threads and is always bound to a \texttt{std::mutex}.
 
 A shared queue utilizing \texttt{std::mutex} and \texttt{std::condition\_variable} could be implemented as follows:
 
@@ -126,9 +126,9 @@ class queue {
 
 Popping an object works similarly: first, the lock is obtained. Then, if the internal \texttt{std::queue} happens to be empty, the lock is released temporarily until another thread calls \texttt{notify\_one}, a member function of \texttt{std::condition\_variable}. Afterwards the first object in the queue is obtained and returned to the caller.
 
-\subsubsection{Low-level Synchronization}\label{modern:queue:atomics}
+\subsubsection{Low-level Synchronisation}\label{modern:queue:atomics}
 
-Besides the high-level constructs presented in Section \ref{modern:queue:mutex}, C++11 also introduced atomic operations to the standard library. These offer another way to synchronize threads and offer more control (and responsibility) to the programmer. \texttt{std::atomic\_flag} is especially useful for synchronization constructs and can replace \texttt{std::mutex} in the shared queue implemented above:
+Besides the high-level constructs presented in Section \ref{modern:queue:mutex}, C++11 also introduced atomic operations to the standard library. These offer another way to synchronise threads and leave more control (and responsibility) to the programmer. \texttt{std::atomic\_flag} is especially useful for synchronisation constructs and can replace \texttt{std::mutex} in the shared queue implemented above:
 
 \begin{minted}[fontsize=\small]{c++}
 #include <atomic>

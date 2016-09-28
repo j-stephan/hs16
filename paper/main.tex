@@ -3,32 +3,22 @@
 \usepackage{datetime}
 \usepackage{etoolbox}
 \usepackage[acronyms]{glossaries}
-\usepackage{listings}
 \usepackage[section]{minted}
 \usepackage{tcolorbox}
-%\usepackage[dvipsnames]{xcolor}
 
-\newdateformat{titledate}{\ordinalnum{\THEDAY} \monthname[\themonth], \THEYEAR}
+\date{\ordinalnum{30} of September 2016}
 
 \BeforeBeginEnvironment{minted}{\begin{tcolorbox}}
 \AfterEndEnvironment{minted}{\end{tcolorbox}}
 
 \newcommand{\lstfont}[1]{\color{#1}\small\ttfamily}
 
-%\lstset{language=[11]C++,
-%		showstringspaces=false,
-%		basicstyle=\lstfont{black},
-%		keywordstyle=\lstfont{magenta},
-%		stringstyle=\lstfont{orange},
-%		emph={cudaMalloc, cudaFree, __global__},
-%		emphstyle=\lstfont{magenta},
-%		breaklines=true}
-
 \author{Jan Stephan}
 \title{Innovations in C++11, 14 and 17 in the Context of Performance Analysis of HPC Applications}
 \matno{3755136}
 \betreuer{Ronny Brendel}
 
+\newacronym{hpc}{HPC}{High-Performance Computing}
 \newacronym{raii}{RAII}{Resource Acquisition is Initialization}
 \newacronym{stl}{STL}{Standard Template Library}
 

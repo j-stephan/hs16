@@ -6,9 +6,9 @@ This section provides a brief overview for the planned changes of the upcoming C
 
 When C++11 was released in 2011 thirteen years had passed since the last major C++ standard (C++98) and eight since the last minor standard (C++03). During this time technology has evolved and with it the needed programming models, for example the widespread adoption of multicore CPUs and thus concurrent programming. However, the C++ programming language and its standard library did not reflect this development, forcing developers to rely on third-party libraries such as Boost or Pthreads.
 
-In order to prevent this issue in the future the C++ standard committee was reorganised into several subgroups in 2012, adopting a decentral work process. These subgroups are called ``study groups'' officially and each of them works on evolving a part of the language or the library. As of September 2016 there are 14 study groups~\cite{cpp_committee}, focusing on topics such as low latency, issues with the currently available concurrency features, databases and more.
+In order to prevent this issue in the future the C++ standard committee was reorganised into several subgroups in 2012, adopting a decentral work process. These subgroups are officially called ``study groups'' and each of them works on evolving a part of the language or the library. As of September 2016 there are 14 study groups~\cite{cpp_committee}, focusing on topics such as low latency, issues with the currently available concurrency features, databases and more.
 
-The overall goal is to publish new standards much more frequently than before. The focus on faster and therefore ``slimmer'' standardisation also has the effect that compiler and standard library developers 
+The overall goal is to publish new standards much more frequently than before. The focus on faster and therefore ``slimmer'' standardisation also has the effect that compiler and standard library developers are able to fully implement the standard much faster~\cite{cpp14_announcement}.
 
 \subsection{\texttt{if}-Statement with Initializer}\label{cpp17:if_init}
 
@@ -61,10 +61,10 @@ Apart from changes to the core language the upcoming standard will see additions
 
 \begin{itemize}
 \item the switch to the C11 standard as foundation for C++17~\cite{cpp17std}(§1.2)
-\item additional mathematical functions (polynomials, )~\cite{cpp17std}(§26.9.5)
+\item additional mathematical functions (polynomials, beta function, elliptic integrals, etc.)~\cite{cpp17std}(§26.9.5)
 \item functions for filesystem interaction ~\cite{cpp17std}(§27.10)
 \item new algorithms in the header file \texttt{<algorithm>} (\texttt{sample}, \texttt{reduce}, etc.)~\cite{cpp17std}(§25)
 \item parallelisable algorithms (in the header \texttt{<algorithm>})~\cite{cpp17std}(§25)
 \end{itemize}
 
-\noindent The last point raises the question how parallelisable algorithms such as \texttt{std::find} are internally implemented (which makes them suitable for speficic use cases or not). At the time of writing most of the commonly available standard libraries do not yet support parallel algorithms; however, Microsoft provided an open-source reference implementation~\cite{parallel_stl} to which the inclined reader may refer to learn about the details.
+\noindent The last point raises the question how parallelisable algorithms such as \texttt{std::find} are internally implemented (which makes them suitable for specific use cases or not). At the time of writing most of the commonly available standard libraries do not yet support parallel algorithms; however, Microsoft provided an open-source reference implementation~\cite{parallel_stl} to which the inclined reader may refer to learn about the details.

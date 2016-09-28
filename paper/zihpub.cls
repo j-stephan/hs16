@@ -457,7 +457,7 @@ Wissenschaftlichen Hochleistungsrechnen''}
 
 % Sprach-Dateien
 \if@german%
-  \RequirePackage[american,main=ngerman]{babel}
+  \RequirePackage[british,main=ngerman]{babel}
 \else
   \RequirePackage[main=british,ngerman]{babel}
 \fi
