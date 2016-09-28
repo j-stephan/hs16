@@ -1,73 +1,70 @@
-\section{Outlook On C++17}
+\section{Outlook On C++17}\label{cpp17}
 
-\subsection{The Standardization Process}
+This section provides a brief overview for the planned changes of the upcoming C++ standard~\cite{cpp17std}. This revision is likely to be released in 2017.
 
-\subsection{\texttt{if}-Statement With Initializer}
-\subsection{Structured Bindings}
-\subsection{Parallel Algorithms}
+\subsection{The Standardisation Process}\label{cpp17:standardisation}
 
-\subsubsection{Parallel \texttt{find}}
+When C++11 was released in 2011 thirteen years had passed since the last major C++ standard (C++98) and eight since the last minor standard (C++03). During this time technology has evolved and with it the needed programming models, for example the widespread adoption of multicore CPUs and thus concurrent programming. However, the C++ programming language and its standard library did not reflect this development, forcing developers to rely on third-party libraries such as Boost or Pthreads.
 
-With the introduction of C++17, \texttt{std::find} will have the following signatures:
+In order to prevent this issue in the future the C++ standard committee was reorganised into several subgroups in 2012, adopting a decentral work process. These subgroups are called ``study groups'' officially and each of them works on evolving a part of the language or the library. As of September 2016 there are 14 study groups~\cite{cpp_committee}, focusing on topics such as low latency, issues with the currently available concurrency features, databases and more.
 
-\begin{lstlisting}[language=C++]
-template <class InputIt, class T>
-InputIt find(InputIt first, InputIt last, const T& value);
+The overall goal is to publish new standards much more frequently than before. The focus on faster and therefore ``slimmer'' standardisation also has the effect that compiler and standard library developers 
 
-template <class ExecutionPolicy, class InputIt, class T>
-InputIt find(ExecutionPolicy&& policy, InputIt first, InputIt last,
-    const T& value);
-\end{lstlisting}
+\subsection{\texttt{if}-Statement with Initializer}\label{cpp17:if_init}
 
-While the first variant will not be parallelized, the second may be executed with the parallel execution policy type. This raises the question how a parallel \texttt{std::find} is implemented internally. As of the writing of this document most of the commonly available standard libraries do not support the proposed parallel algorithms; however, Microsoft provided a reference implementation. Internally, their parallel \texttt{find} works in a similar fashion to the code in Listing~\ref{lst:find_impl}: After executing the function the runtime will spawn a number of threads and split the container amongst them. Each thread then processes his part of the container and sets a shared atomic variable if the value in question was found, unless a better match was found by another thread, already.
+The next C++ standard will see a significant change to the core language: \texttt{if}-statements can initialise variables directly. The current way of initialising looks like this:
 
-\begin{lstlisting}[caption={A Microsoft-inspired parallel find implementation},label={lst:find_impl},language=C++]
-template <class InputIt, class T>
-InputIt find_impl(std::execution::par, InputIt first, InputIt last,
-    const T& value)
-{
-    // container size
-    auto size = std::distance(first, last);
+\begin{minted}[fontsize=\small]{c++}
+std::map<int, std::string> m;
 
-    // shared among threads
-    using difference_type = typename std::iterator_traits<InputIt>::difference_type;
-    std::atomic<difference_type> state(size);
-    
-    /*
-     * Omitted: spawn a number of threads, starting at different
-     * positions between [first, last). The work sizes are
-     * stored in "count" and the thread-local starting position
-     * in "begin"
-     */
-    auto dist = std::distance(first, begin);
-    for(auto pos = 0; pos < count; ++pos, ++begin)
-    {
-        if(value == *begin)
-        {
-            auto cur = dist + pos;
-            auto old = state.load(std::memory_order_relaxed);
-            
-            do
-            {
-                // do not replace if there is a closer match already found
-                if(old < cur)
-                    break;
-            } while(!state.compare_exchange_strong(old, cur, std::memory_order_relaxed));
-            
-            break;
-        }
-    }
-    
-    /*
-     * Omitted: join threads
-     */
-    auto pos = state.load(std::memory_order_relaxed);
-    if(pos != size)
-    {
-        std::advance(first, pos);
-        return first;
-    }
-    
-    return last;
-}
-\end{lstlisting}
+auto it = m.find(10);
+if(it != m.end()) return it->size();
+\end{minted}
+
+\noindent This approach has the disadvantage that \texttt{it} is now visible beyond the \texttt{if}-statement and can not be changed later to e.g. a \texttt{std::vector::iterator}. The upcoming standard enables the developer to change his code to the following~\cite{cpp17std}(§6.4):
+
+\begin{minted}[fontsize=\small]{c++}
+std::map<int, std::string> m;
+
+if(auto it = m.find(10); it != m.end()) return it->size();
+\end{minted}
+
+\noindent Additionally, \texttt{it} is now only visible inside the scope of the \texttt{if}-statement. This means he can reuse the name later for another purpose.
+
+\subsection{Structured Bindings}\label{cpp17:struct_bind}
+
+Another important change to the core language are \textit{structured bindings}~\cite{cpp17std}(§8.5). These enable the developer to initialise multiple variables at once from a struct:
+
+\begin{minted}[fontsize=\small]{c++}
+struct s {
+    int x;
+    volatile double y;
+};
+
+auto f() -> s { // ... }
+const auto [x, y] = f();
+
+foo(x); // x is of type const int
+bar(y); // y is of type const volatile double
+\end{minted}
+
+\noindent In combination with the changes presented in Section \ref{cpp17:if_init} this leads to clean and elegant code:
+
+\begin{minted}[fontsize=\small]{c++}
+if(auto [x, y, z] = foo(); x.valid())
+    bar(y, z);
+\end{minted}
+
+\subsection{Library Extensions}\label{cpp17:lib_ext}
+
+Apart from changes to the core language the upcoming standard will see additions to the standard library as well. Some of those changes are:
+
+\begin{itemize}
+\item the switch to the C11 standard as foundation for C++17~\cite{cpp17std}(§1.2)
+\item additional mathematical functions (polynomials, )~\cite{cpp17std}(§26.9.5)
+\item functions for filesystem interaction ~\cite{cpp17std}(§27.10)
+\item new algorithms in the header file \texttt{<algorithm>} (\texttt{sample}, \texttt{reduce}, etc.)~\cite{cpp17std}(§25)
+\item parallelisable algorithms (in the header \texttt{<algorithm>})~\cite{cpp17std}(§25)
+\end{itemize}
+
+\noindent The last point raises the question how parallelisable algorithms such as \texttt{std::find} are internally implemented (which makes them suitable for speficic use cases or not). At the time of writing most of the commonly available standard libraries do not yet support parallel algorithms; however, Microsoft provided an open-source reference implementation~\cite{parallel_stl} to which the inclined reader may refer to learn about the details.

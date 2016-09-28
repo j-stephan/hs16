@@ -1,207 +1,12 @@
 \begin{appendix}
 
-\section{Basic Blowfish Implementation}\label{app:blowfish}
-
-\subsection{blowfish.h}
-
-\begin{lstlisting}[language=C++]
-namespace bf
-{
-    constexpr auto rounds = 16;
-    
-    struct key {
-        array<uint32_t, rounds + 2> p;
-        array<uint32_t, 4 * 256> s;
-    };
-    
-    enum class enc {
-        encrypt,
-        decrypt
-    };
-    
-    auto set_key(const vector<uint8_t>& data) -> key;
-    auto encrypt(array<uint32_t, 2>& data, const key& k) -> void;
-    auto decrypt(array<uint32_t, 2>& data, const key& k) -> void;
-    
-    auto ecb_encrypt(const vector<uint8_t>& in, vector<uint8_t>& out, const key& k, enc e) -> void;
-}
-\end{lstlisting}
-
-\subsection{ecb.cpp}
-
-\begin{lstlisting}[language=C++]
-namespace bf
-{
-    namespace
-    {
-        template <class OutputIt>
-        inline auto n2l(OutputIt& c, std::uint32_t& l) -> void
-        {
-            l = static_cast<uint32_t>(*(c++)) << 24L;
-            l |= static_cast<uint32_t>(*(c++)) << 16L;
-            l |= static_cast<uint32_t>(*(c++)) << 8L;
-            l |= static_cast<uint32_t>(*(c++));
-        }
-        
-        template <class InputIt>
-        inline auto l2n(std::uint32_t l, InputIt& c) -> void
-        {
-            *(c++) = static_cast<uint32_t>((l >> 24L) & 0xFF);
-            *(c++) = static_cast<uint32_t>((l >> 16L) & 0xFF);
-            *(c++) = static_cast<uint32_t>((l >> 8L) & 0xFF);
-            *(c++) = static_cast<uint32_t>(l & 0xFF);
-        }
-    }
-    
-    auto ecb_encrypt(const vector<uint8_t>& in, vector<uint8_t>& out, const key& k, enc e) -> void
-    {
-        auto l = uint32_t{};
-        auto d = array<uint32_t, 2>{};
-        auto in_it = begin(in);
-
-        n2l(in_it, l);
-        d.at(0) = l;
-        
-        n2l(in_it, l);
-        d.at(1) = l;
-        
-        if(e == enc::encrypt)
-            encrypt(d, k);
-        else
-            decrypt(d, k);
-            
-        auto out_it = begin(out);
-        
-        l = d.at(0);
-        l2n(l, out_it);
-        
-        l = d.at(1);
-        l2n(l, out_it);
-        
-        l = 0;
-        d.at(0) = 0;
-        d.at(1) = 0;
-    }
-\end{lstlisting}
-
-\subsection{encrypt.cpp}
-
-\begin{lstlisting}[language=C++]
-namespace bf
-{
-    namespace
-    {
-        template <class InputIt, class S>
-        inline auto encr(InputIt pbegin, InputIt pend, const S& s, uint32_t& l, uint32_t& r) -> void
-        {
-            for_each(pbegin, pend, [&l, &r, &s](const auto p)
-                {
-                    l ^= p;
-                    l ^= (((s.at(          ((r >> 24) & 0xFF))  +
-                            s.at(0x0100U + ((r >> 16) & 0xFF))) ^
-                            s.at(0x0200U + ((r >> 8 ) & 0xFF))) +
-                            s.at(0x0300U + ((r      ) & 0xFF)) & 0xFFFFFFFFU);
-                    swap(l, r);
-                }
-            );
-        }
-    }
-    
-    auto encrypt(array<uint32_t, 2>& data, const key& k) -> void
-    {
-        const auto& p = k.p;
-        const auto& s = k.s;
-        auto l = data.at(0) ^ p.at(0);
-        auto r = data.at(1);
-        
-        encr(begin(p) + 1, end(p), s, r, l);
-        
-        r ^= p.at(rounds + 1);
-        
-        data.at(0) = r & 0xFFFFFFFFU;
-        data.at(1) = l & 0xFFFFFFFFU;
-    }
-    
-    auto decrypt(array<uint32_t, 2>& data, const key& k) -> void
-    {
-        const auto& p = k.p;
-        const auto& s = k.s;
-        auto l = data.at(0) ^ p.at(rounds + 1);
-        auto r = data.at(1);
-        
-        encr(rbegin(p), rend(p) - 1, s, r, l);
-        
-        r ^= p.at(0);
-        
-        data.at(0) = r & 0xFFFFFFFFU;
-        data.at(1) = r & 0xFFFFFFFFU;
-    }
-}
-\end{lstlisting}
-
-\subsection{set\_key.cpp}
-
-\begin{lstlisting}[language=C++]
-namespace bf
-{
-    auto set_key(const vector<uint8_t>& data) -> key
-    {
-        // init is a constexpr variable of type key
-        // which contains the numbers of Pi in
-        // hexadecimal notation (see bf_pi.h in
-        // OpenSSL's implementation)
-        auto k = init;
-        
-        auto len = data.size();
-        if(len > (rounds + 2) * 4
-            len = (rounds + 2) * 4;
-            
-        auto d = begin(data);
-        auto e = d + len;
-        
-        for(auto i = 0; i < rounds + 2; ++i)
-        {
-            auto ri = *(d++);
-            if(d >= e)
-                d = begin(data);
-                
-            for(auto j = 0; j < 3; ++j)
-            {
-                ri <<= 8;
-                ri |= *(d++);
-                if(d >= e)
-                    d = begin(data);
-            }
-            
-            k.p.at(i) ^= ri;
-        }
-        
-        auto in = array<uint32_t, 2>{0, 0};
-        for(auto i = 0; i < rounds + 2; i += 2)
-        {
-            encrypt(in, k);
-            k.p.at(i) = in.at(0);
-            k.p.at(i + 1) = in.at(1);
-        }
-        
-        for(auto i = 0; i < 4 * 256; i += 2)
-        {
-            encrypt(in, k);
-            k.s.at(i) = in.at(0);
-            k.s.at(i + 1) = in.at(1);
-        }
-        
-        return k;
-}
-\end{lstlisting}
-
-\section{Score-P / Vampir Examples}\label{app:scorep}
+\section{Score-P / Vampir Test Cases}\label{app:scorep}
 
 \subsection{Concurrency}\label{app:scorep_conc}
 
-\subsubsection{\texttt{std::async} -- default behaviour}\label{app:scorep_conc_async_default}
+\subsubsection{\texttt{std::async} -- Default Behaviour}\label{app:scorep_conc_async_default}
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -215,7 +20,8 @@ constexpr auto vec_size = std::size_t{1000000};
 auto task1() -> void
 {
     // fill a vector with values (vec_size, 0] and sort it
-    auto vec = std::vector<std::int32_t>{vec_size};
+    auto vec = std::vector<std::int32_t>{};
+    vec.resize(vec_size);
     std::iota(std::rbegin(vec), std::rend(vec), 0);
     std::sort(std::begin(vec), std::end(vec));
 }
@@ -223,7 +29,8 @@ auto task1() -> void
 auto task2() -> std::int32_t
 {
     // fill a vector with random values and return the maximum
-    auto vec = std::vector<std::int32_t>{vec_size};
+    auto vec = std::vector<std::int32_t>{};
+    vec.resize(vec_size);
     std::generate(std::begin(vec), std::end(vec), std::rand);
     auto it = std::max_element(std::begin(vec), std::end(vec));
     return *it;
@@ -239,11 +46,11 @@ auto main() -> int
     
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
-\subsubsection{\texttt{std::async} -- asynchronous evaluation}\label{app:scorep_conc_async_async}
+\subsubsection{\texttt{std::async} -- Asynchronous Evaluation}\label{app:scorep_conc_async_async}
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -257,7 +64,8 @@ constexpr auto vec_size = std::size_t{1000000};
 auto task1() -> void
 {
     // fill a vector with values (vec_size, 0] and sort it
-    auto vec = std::vector<std::int32_t>{vec_size};
+    auto vec = std::vector<std::int32_t>{};
+    vec.resize(vec_size);
     std::iota(std::rbegin(vec), std::rend(vec), 0);
     std::sort(std::begin(vec), std::end(vec));
 }
@@ -265,7 +73,8 @@ auto task1() -> void
 auto task2() -> std::int32_t
 {
     // fill a vector with random values and return the maximum
-    auto vec = std::vector<std::int32_t>{vec_size};
+    auto vec = std::vector<std::int32_t>{};
+    vec.resize(vec_size);
     std::generate(std::begin(vec), std::end(vec), std::rand);
     auto it = std::max_element(std::begin(vec), std::end(vec));
     return *it;
@@ -281,11 +90,11 @@ auto main() -> int
     
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
-\subsubsection{\texttt{std::async} -- lazy evaluation}\label{app:scorep_conc_async_lazy}
+\subsubsection{\texttt{std::async} -- Lazy Evaluation}\label{app:scorep_conc_async_lazy}
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -299,7 +108,8 @@ constexpr auto vec_size = std::size_t{1000000};
 auto task1() -> void
 {
     // fill a vector with values (vec_size, 0] and sort it
-    auto vec = std::vector<std::int32_t>{vec_size};
+    auto vec = std::vector<std::int32_t>{};
+    vec.resize(vec_size);
     std::iota(std::rbegin(vec), std::rend(vec), 0);
     std::sort(std::begin(vec), std::end(vec));
 }
@@ -307,7 +117,8 @@ auto task1() -> void
 auto task2() -> std::int32_t
 {
     // fill a vector with random values and return the maximum
-    auto vec = std::vector<std::int32_t>{vec_size};
+    auto vec = std::vector<std::int32_t>{};
+    vec.resize(vec_size);
     std::generate(std::begin(vec), std::end(vec), std::rand);
     auto it = std::max_element(std::begin(vec), std::end(vec));
     return *it;
@@ -323,11 +134,11 @@ auto main() -> int
     
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
-\subsubsection{\texttt{std::thread} -- spawn and join}\label{app:conc_thread_join}
+\subsubsection{\texttt{std::thread} -- Spawn and Join}\label{app:conc_thread_join}
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -352,11 +163,11 @@ auto main() -> int
     
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
-\subsubsection{\texttt{std::thread} -- spawn and detach}\label{app:conc_thread_detach}
+\subsubsection{\texttt{std::thread} -- Spawn and Detach}\label{app:conc_thread_detach}
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -385,13 +196,13 @@ auto main() -> int
     
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{Synchronization}\label{app:scorep_sync}
 
 \subsubsection{\texttt{std::mutex}}\label{app:scorep_sync_mutex}
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <iostream>
 #include <mutex>
 
@@ -416,11 +227,24 @@ auto f2(void*) -> void*
     usleep(20 * 1000);
     return nullptr;
 }
-\end{lstlisting}
+
+auto main() -> int
+{
+    pthread_t threads[2];
+    
+    pthread_create(&threads[0], nullptr, f1, 0);
+    pthread_create(&threads[1], nullptr, f2, 0);
+    
+    pthread_join(threads[0], nullptr);
+    pthread_join(threads[1], nullptr);
+    
+    return 0;
+}
+\end{minted}
 
 \subsubsection{\texttt{std::condition\_variable}}\label{app:scorep_sync_cv}
 
-\begin{lstlisting}
+\begin{minted}[breaklines,breakafter=\,,fontsize=\small]{c++}
 #include <algorithm>
 #include <array>
 #include <condition_variable>
@@ -460,13 +284,13 @@ auto main() -> int
         
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{File I/O}
 
-\subsubsection{\texttt{std::fstream} in binary mode}\label{app:scorep_binary_fstream}
+\subsubsection{\texttt{std::fstream}}\label{app:scorep_fstream}
 
-\begin{lstlisting}
+\begin{minted}[breaklines,breakafter=\,,fontsize=\small]{c++}
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
@@ -498,40 +322,11 @@ auto main() -> int
         
     return 0;
 }
-\end{lstlisting}
-
-\subsubsection{\texttt{std::fstream} in text mode}\label{app:scorep_text_fstream}
-
-\begin{lstlisting}
-#include <fstream>
-#include <iostream>
-#include <string>
-
-auto main() -> int
-{
-    auto path = std::string{"test.txt"};
-    
-    {
-        std::ofstream out{path.c_str()};
-        out << "Lorem ipsum dolor sit amet, consetetur sadipscing elitir, sed diam nonumy\n"
-        << "eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam\n"
-		<< "voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita\n"
-		<< "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem\n"
-		<< "ipsum dolor sit amet, consetetur sadipscing elitir, sed diam nonumy eirmod"
-		<< std::endl;
-	}
-	{
-		std::ifstream in{path.c_str()};
-		in >> std::cout.rdbuf();
-	}
-	
-	return 0;
-}
-\end{lstlisting}
+\end{minted}
 
 \subsubsection{\texttt{C-style I/O}}\label{app:scorep_c_io}
 
-\begin{lstlisting}
+\begin{minted}[breaklines,breakafter=\,,fontsize=\small]{c++}
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
@@ -562,6 +357,6 @@ auto main() -> int
         
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
 \end{appendix}

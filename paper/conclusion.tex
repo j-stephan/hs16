@@ -1,0 +1,7 @@
+\section{Conclusion}
+
+Modern C++ changed the way of efficient C++ programming tremendously. It leads to a higher abstraction level without a decrease in performance, makes memory management (and thus safety) as well as concurrency a lot easier and offers several other advantages to the HPC community.
+
+The increasing adoption of these changes by developers puts a lot of pressure on performance analysis programs such as Score-P and Vampir. Most of the features offered by C++ and its standard library are already supported or not relevant in a performance analysis context. As this report shows some important features -- especially in the field of concurrency -- are not supported yet. This is an important issue that needs to be addressed quickly if Score-P and Vampir should not become irrelevant in the medium term with regard to HPC application profiling. A few solutions for these problems are outlined in this paper; others are actively worked on at the time of writing.
+
+Perhaps the most interesting additions (from an HPC perspective) to the standard library will be the parallelisable algorithms from the upcoming standard. Correctly instrumenting and displaying these algorithms at the time of their release would be a great improvement to both Score-P and Vampir and a serious advantage over comparable applications.

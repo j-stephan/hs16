@@ -1,9 +1,21 @@
-\section{Introduction}
+\section{Introduction}\label{intro}
 
-With the release of the C++11 standard in 2011 the C++ community was introduced to several new language and library features~\cite{cpp11std}. Together with a new programming philosophy (see Section~\ref{subs:intro_philosophy}) these changes were so extensive that the original creator of the C++ programming language, Bjarne Stroustrup, felt like it was a ``new language''~\cite{tcpp}.
+With the release of the C++11 standard in 2011 the C++ community was introduced to several new language and library features~\cite{cpp11std}. Together with a new programming philosophy (see Section~\ref{intro:philosophy}) these changes were so extensive that the original creator of the C++ programming language, Bjarne Stroustrup, felt like it was a ``new language''~\cite{tcpp}.
 
-In this report some of the new features will be presented, especially those which are relevant in a performance analysis context. Additionally, the performance analysis tools Score-P~\cite{scorep} and Vampir~\cite{vampir} will be evaluated with regard to these new changes.
+The goals of this report are
+\begin{itemize}
+\item to present modern C++ features relevant in a context of HPC and performance analysis,
+\item to evaluate and analyse these feature's influence on the aforementioned context,
+\item to implement example programs making use of these features and their analysis with Score-P~\cite{scorep} and Vampir~\cite{vampir} and finally
+\item to develop recommendations for enabling Score-P and Vampir to support those features they currently can not instrument correctly.
+\end{itemize}
 
-\subsection{C++11 and C++14}
+\subsection{C++11 and C++14}\label{intro:cpp11_14}
 
-\subsection{The Modern C++ Philosophy}\label{subs:intro_philosophy}
+The C++11 standard~\cite{cpp11std} was published in 2011, thirteen years after the last major standard C++98 and eight years after the last minor standard C++03. While it maintained near-perfect backward compatibility~\cite{cppfaq_learn} it introduced a lot of new features to the core language and the standard library.
+
+The current C++14 standard~\cite{cpp14std} brought fewer changes to both the language and the library when compared to its predecessor and can be considered ``bugfix'' to C++11. Because of this the contents of the sections below are focused on C++11, mentioning C++14 where changes to the C++11 standard can be applied.
+
+\subsection{The Modern C++ Philosophy}\label{intro:philosophy}
+
+Apart from language standardisation the Standard C++ Foundation is also advertises a new programming philosophy, suggesting more abstraction, using the \gls{raii} pattern and relying on the \gls{stl} in almost all situations. In support of this cause Bjarne Stroustrup (creator of C++) and Herb Sutter (president of the Standard C++ Foundation) are working on the detailed \textit{C++ Core Guidelines}, the current draft being publicly available~\cite{cpp_guidelines}. The code examples in this document are following these guidelines wherever possible.

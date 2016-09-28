@@ -1,26 +1,26 @@
-\subsection{Producer/Consumer Queue}\label{queue}
+\subsection{Producer/Consumer Queue}\label{modern:queue}
 
-In order to showcase the modern C++ concurrency features a simple producer/consumer queue will be implemented in this section.
+A simple producer/consumer queue is implemented in the following sections to showcase the modern C++ concurrency features.
 
-\subsubsection{C++11 thread support}
+\subsubsection{C++11 Thread Support}\label{modern:queue:support}
 
-Before the new C++ standard was published in 2011 there was no way to create and manage threads in a platform independent manner. The programmer had to resort to mechanisms specific to the targetted operating system, e.g. Pthreads or Win32 threads. Furthermore these mechanisms are not idiomatic (with regard to C++) as they are usually plain C interfaces. This means there was no native support for \gls{raii}, making wrappers around these interfaces necessary. Additionally, there was no platform-independent support for atomic operations.
+Before the new C++ standard was published in 2011 there was no standardised way to create and manage threads in a platform independent manner. The programmer had to resort to mechanisms specific to the targetted operating system, e.g. Pthreads or Win32 threads, or third-party libraries, like Qt. Furthermore these mechanisms are not idiomatic (with regard to C++) as they are usually plain C interfaces. This means there was no native support for \gls{raii}, making wrappers around these interfaces necessary. Additionally, there was no platform-independent support for atomic operations.
 
 With the adoption of C++11 the situation changed: the new standard introduced a thread support library~\cite{cpp11std}(§30) and an atomic operations library~\cite{cpp11std}(§29). Both will be briefly introduced in the following sections.
 
-\subsubsection{High-level thread creation}
+\subsubsection{High-level Thread Creation}\label{modern:queue:futures}
 
-The easiest way to spawn concurrent threads in C++11 is to not do it by oneself. Instead, the highest-level approach C++11 offers is a call to \texttt{std::async}~\cite{cpp11std}(§30.6.8), leaving thread creation and management to the library. The result (if any) of the concurrent computation can be collected later by using a \texttt{std::future} construct. With this approach a program managing a shared queue (which will be implemented later) could look similar to the following code:
+The easiest way to spawn concurrent threads in C++11 is to not do it by oneself. Instead, the highest-level approach C++11 offers is a call to \texttt{std::async}~\cite{cpp11std}(§30.6.8), leaving thread creation and management to the library. The result (if any) of the concurrent computation can be collected later by using the \texttt{std::future} construct. With this approach a program relying on a shared queue (which will be implemented in the Sections \ref{modern:queue:mutex} and \ref{modern:queue:atomics}) can be implemented as follows:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <future>
+using namespace std;
 
-auto main() -> int
-{
+auto main() -> int {
     auto q = queue{};
-    // std::async returns a std::future which will contain the result
-    auto f1 = std::async(std::launch::async, [&q](){ q.push(create_object()); });
-    auto f2 = std::async(std::launch::async, [&q](){ return q.pop(); });
+    // async returns a future which will contain the result
+    auto f1 = async(launch::async, [&q](){ q.push(create_object()); });
+    auto f2 = async(launch::async, [&q](){ return q.pop(); });
  
     // f1 does not return anything
     f1.get();
@@ -30,24 +30,24 @@ auto main() -> int
 
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
 \paragraph{std::async}
 
 Note the explicit specification of \texttt{std::launch::async}. By default, one passes a function and an arbitrary number of arguments to \texttt{std::async}. This is equivalent to the following call:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 using namespace std;
 auto f = async(launch::async | launch::deferred, func, params...);
-\end{lstlisting}
+\end{minted}
 
 \begin{itemize}
-\item \texttt{std::launch::async} explicitly tells the library to run the specified function in a separate thread. If \texttt{std::future::get} \texttt{std::future::wait} is called before the task is completed, the calling thread is blocked until the result becomes ready.
+\item \texttt{std::launch::async} explicitly tells the library to run the specified function in a separate thread. If \texttt{std::future::get} or \texttt{std::future::wait} are called before the task is completed, the calling thread is blocked until the result becomes ready.
 \item \texttt{std::launch::deferred} is the opposite: The function is to be executed on the first call to either \texttt{std::future::get} or \texttt{std::future::wait} -- the passed function is executed in the same thread as its caller.
-\item \texttt{std::launch::async | std::launch::deferred} exhibits implementation-defined behaviour. Depending on the implementation this may either spawn a new thread or execute in the same thread as the caller.
+\item \texttt{std::launch::async | std::launch::deferred} shows implementation-defined behaviour, i.e. may either spawn a new thread or execute in the same thread as the caller.
 \end{itemize}
 
-In either case the computation's result is stored in the associated \texttt{std::future} and can be accessed by a call to \texttt{std::future::get}.
+\noindent In either case the computation's result is stored in the associated \texttt{std::future} and can be accessed by a call to \texttt{std::future::get}.
 
 \paragraph{Lambda functions}
 
@@ -57,19 +57,18 @@ The second parameter to \texttt{std::async} in the example is called a lambda fu
 [capture clause](parameters){ body }
 \end{verbatim}
 
-The \textit{capture clause} tells the compiler how to make names outside of the lambda's body visible on the inside. An empty clause (\texttt{[]}) prevents any access to names outside of the lambda. A reference clause (\texttt{[\&]}) captures all names by reference, a copy clause (\texttt{[=]}) copies them. These operations are also applicable to single names: \texttt[\&foo] captures only \texttt{foo} by reference, \texttt{[=bar]} copies only \texttt{bar}. The latter is equivalent to \texttt{[bar]}. Additionally, these operations are combinable: \texttt{[\&foo, bar]} captures \texttt{foo} and copies \texttt{bar}.
+\noindent The \textit{capture clause} tells the compiler how to make names outside of the lambda's body visible on the inside. An empty clause (\texttt{[]}) prevents any access to names outside of the lambda. A reference clause (\texttt{[\&]}) captures all names by reference, a copy clause (\texttt{[=]}) copies them. These operations are also applicable to single names: \texttt{[\&foo]} captures only \texttt{foo} by reference, \texttt{[=bar]} copies only \texttt{bar}. The latter is equivalent to \texttt{[bar]}. Additionally, these operations are combinable: \texttt{[\&foo, bar]} captures \texttt{foo} and copies \texttt{bar}.
 
-The parameters and the body work mostly like those of a normal function, except that the parameters can be generic (declared as \texttt{auto}) as well (since C++14~\cite{cpp14std}(§5.1.2)).
+The parameters and the body work mostly like those of a normal function, except that the parameters can be generic (declared as \texttt{auto}) as well since C++14~\cite{cpp14std}(§5.1.2).
 
-\subsubsection{Low-level thread creation}
+\subsubsection{Low-level Thread Creation}\label{modern:queue:threads}
 
-A manual approach to thread management is offered by \texttt{std::thread}~\cite{cpp11std}(§30.3.1). It works in a very similar way to a Pthread:
+A manual approach to thread management is offered by \texttt{std::thread}~\cite{cpp11std}(§30.3.1). It works in a very similar way to the Pthread library:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <thread>
 
-auto main() -> int
-{
+auto main() -> int {
     auto q = queue{};
     auto obj = object{};
     auto p = std::thread([&q](){ q.push(create_object()); });
@@ -80,24 +79,23 @@ auto main() -> int
     
     return 0;
 }
-\end{lstlisting}
+\end{minted}
 
-In contrast to \texttt{std::async} there is no direct way to obtain the result of the computation; instead it is up to the programmer to obtain the result in a way of his choosing, e.g. by passing an empty object by reference or by handcrafting a solution around \texttt{std::future} and its companion \texttt{std::promise}.
+\noindent In contrast to \texttt{std::async} there is no direct way to obtain the result of the computation; instead it is up to the programmer to obtain the result in a way of his choosing, e.g. by passing an empty object by reference or by handcrafting a solution around \texttt{std::future} and its companion \texttt{std::promise}.
 
-\subsubsection{High-level synchronization}\label{queue:mutex}
+\subsubsection{High-level Synchronization}\label{modern:queue:mutex}
 
-Whenever multiple threads are accessing the same data synchronization becomes an important issue. For these purposes the C++11 standard includes synchronization constructs, namely \texttt{std::mutex}, its derivates and locking mechanisms~\cite{cpp11std}(§30.4) as well as \texttt{std::condition\_variable}~\cite{cpp11std}(§30.5). The latter offers a more fine-grained control over blocking or unblocking threads and is always bound to a \texttt{std::mutex}.
+Whenever multiple threads are accessing the same data synchronization becomes an important issue. For this purpose the C++11 standard includes synchronization constructs, namely \texttt{std::mutex}, its derivates and locking mechanisms~\cite{cpp11std}(§30.4) as well as \texttt{std::condition\_variable}~\cite{cpp11std}(§30.5). The latter offers a more fine-grained control over blocking or unblocking threads and is always bound to a \texttt{std::mutex}.
 
-A shared queue utilizing \texttt{std::mutex} and \texttt{std::condition\_variable} could internally look like the following code:
+A shared queue utilizing \texttt{std::mutex} and \texttt{std::condition\_variable} could be implemented as follows:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 
 template <class T>
-class queue
-{
+class queue {
     public:
         auto push(T t) -> void {
             auto lock = std::unique_lock<std::mutex>{m_};
@@ -122,23 +120,23 @@ class queue
         std::mutex m_;
         std::queue<T> queue_;
 };
-\end{lstlisting}
+\end{minted}
 
-Once an object is pushed to the \texttt{queue} the \texttt{std::mutex} is locked. Instead of calling \texttt{std::mutex::lock} and \texttt{std::mutex::unlock} directly \gls{raii} is utilized by constructing a \texttt{std::unique\_lock} object. The object is then pushed to the internal \texttt{std::queue}. Afterwards, another thread that is waiting to access the (previously empty) \texttt{queue} is notified.
+\noindent Once an object is pushed to the \texttt{queue}, the \texttt{std::mutex} is locked. Instead of calling \texttt{std::mutex}'s member functions \texttt{lock} and \texttt{unlock} directly, \gls{raii} is utilized by constructing a \texttt{std::unique\_lock} object. The object is then pushed to the internal \texttt{std::queue}. Afterwards, another thread that is waiting to access the (previously empty) \texttt{queue} is notified.
 
-Popping an object works in a similar way: First, the lock is obtained. If the internal \texttt{std::queue} happens to be empty the lock is released temporarily until another thread calls \texttt{std::condition\_variable::notify\_one}. The first object in the queue is then obtained and returned to the caller.
+Popping an object works similarly: first, the lock is obtained. Then, if the internal \texttt{std::queue} happens to be empty, the lock is released temporarily until another thread calls \texttt{notify\_one}, a member function of \texttt{std::condition\_variable}. Afterwards the first object in the queue is obtained and returned to the caller.
 
-\subsubsection{Low-level synchronization}
+\subsubsection{Low-level Synchronization}\label{modern:queue:atomics}
 
-Besides the high-level constructs presented in Section \ref{queue:mutex} C++11 also introduced atomic operations to the standard library. These offer another way to synchronize threads and offer more control (and responsibility) to the programmer. \texttt{std::atomic\_flag} is especially useful for synchronization constructs and can easily replace \texttt{std::mutex} in the shared queue implemented above:
+Besides the high-level constructs presented in Section \ref{modern:queue:mutex}, C++11 also introduced atomic operations to the standard library. These offer another way to synchronize threads and offer more control (and responsibility) to the programmer. \texttt{std::atomic\_flag} is especially useful for synchronization constructs and can replace \texttt{std::mutex} in the shared queue implemented above:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 #include <atomic>
 #include <thread>
 #include <queue>
 
 template <class T>
-{
+class queue {
     public:
         auto push(T t) -> void {
             while(lock_.test_and_set())
@@ -166,8 +164,8 @@ template <class T>
             std::atomic_flag lock_ = ATOMIC_FLAG_INIT;
             std::queue<T> queue_;
 };
-\end{lstlisting}
+\end{minted}
 
-The disadvantage of this approach is that its not intuitive. \texttt{std::atomic\_flag::test\_and\_set} atomically sets the flag to \texttt{true} and returns the previous value. In this context \texttt{true} means ``locked''. The \texttt{while} loop will only break if another thread has cleared the flag, i.e. set it to \texttt{false}. In this case the flag is set to \texttt{true} by the current thread (thus blocking other threads), the current thread performs its work and then clears the flag (thus unblocking other threads).
+\noindent The disadvantage of this approach is that it is not intuitive. \texttt{std::atomic\_flag::test\_and\_set} atomically sets the flag to \texttt{true} and returns the previous value. In this context \texttt{true} means ``locked''. The \texttt{while} loop will only break if another thread has cleared the flag, i.e. set it to \texttt{false}. In this case the flag is set to \texttt{true} by the current thread (thus blocking other threads), the current thread performs its work and then clears the flag (thus unblocking other threads).
 
 From an outside perspective both implemented queues behave the same: There can be only one thread accessing the data, all  other threads have to wait for it to complete its work.

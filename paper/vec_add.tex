@@ -1,53 +1,53 @@
-\section{Modern C++ by example}
+\section{Modern C++ by example}\label{modern}
 
-In this section the most important features of modern C++ will be briefly introduced by example. In the first example a simple CUDA kernel and its surroundings will be implemented in modern C++, in the second example a producer/consumer queue will be created to show C++11's concurrency features. 
+This section introduces some features of modern C++ by example. It focuses on the features most important in the context of HPC and performancy analysis, i.e. concurrency, synchronisation and memory management. The first example (Section \ref{modern:vec_add}) shows the implementation of a simple CUDA kernel and its surroundings in modern C++, the second example (Section \ref{modern:queue}) a thread-safe producer/consumer queue.
 
-\subsection{CUDA Vector Addition}
+\subsection{CUDA Vector Addition}\label{modern:vec_add}
 
-To illustrate some of the features introduced in C++11 and C++14 simple vector addition will be implemented, using the CUDA toolkit.
+Using the CUDA toolkit, this subsection introduces some of the features supported by the C++11 and C++14 standards. It focuses on additions to the core language which improve maintainability and the stating of the programmer's intent as well as dynamic memory management.
 
-\subsubsection{The Kernel}
+\subsubsection{The Kernel}\label{modern:vec_add:kernel}
 
-Using the subset of C++11 supported by CUDA 7 and later, a kernel which implements a vector addition could look like the following:
+Since CUDA 7 a subset of C++11 is supported. A kernel which implements a vector addition looks like the following code:
 
-\begin{lstlisting}
+\begin{minted}[breaklines,breakafter=\,,fontsize=\small]{cuda}
 __global__ void vector_add(const std::int32_t* a, const std::int32_t* b, std::int32_t* c, std::size_t size)
 {
     auto i = threadIdx.x + blockIdx.x * blockDim.x;
     if(i < size) c[i] = a[i] + b[i];
 }
-\end{lstlisting}
+\end{minted}
 
-There are two notable differences to traditional code: firstly the usage of \texttt{std::int32\_t} instead of plain \texttt{int} and secondly automatic type deduction with the keyword \texttt{auto}. Both will be presented in the following sections.
+\noindent There are two notable differences to traditional code: firstly the usage of \texttt{std::int32\_t} instead of plain \texttt{int} and secondly automatic type deduction with the keyword \texttt{auto}. Both are presented in the following paragraphs.
 
-\paragraph{Fixed Width Integer Types}
+\paragraph{Fixed-Width Integer Types}
 
-Instead of plain \texttt{int} the kernel parameters have the type \texttt{std::int32\_t}. The latter is called a \textit{fixed width integer type} and was introduced with the C++11 standard~\cite{cpp11std}(§18.4.1) which in turn based this inclusion on the C99 standard~\cite{c99std}(§7.18). These types (ranging from 8-bit to 64-bit types, both signed and unsigned), along with counterparts optimized for size or performance, can be found in the header file \texttt{<cstdint>}.
+Instead of \texttt{int} the kernel parameters are of the type \texttt{std::int32\_t}. The latter is called a \textit{fixed-width integer type} and was introduced with the C++11 standard~\cite{cpp11std}(§18.4.1) which in turn based this inclusion on the C99 standard~\cite{c99std}(§7.18). These types (ranging from 8-bit to 64-bit types, both signed and unsigned), along with counterparts optimized for size or performance, can be found in the header file \texttt{<cstdint>}.
 
 \paragraph{The \texttt{auto} Keyword}
 
 In C++11 the already existing keyword \texttt{auto} changed its meaning. Prior to C++11 it denoted the storage class of a variable, a property inherited from C~\cite{c99std}(§6.7.1):
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 void f()
 {
     auto int i; // local variable, lives until end of scope
     static int j; // static variable, permanent duration
 }
-\end{lstlisting}
+\end{minted}
 
-As the usage of this keyword was largely redundant its meaning was changed in C++11 \cite{cpp11std}(§7.1.6.4) to deduce the type of an expression:
+\noindent Because the usage of this keyword was largely redundant, its meaning was changed in C++11~\cite{cpp11std}(§7.1.6.4) to deduce the type of an expression:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 auto i = 0; // i is deduced to be an int
 auto f1 = float(0); // committing to a specific type
 auto f2 = 0.f; // committing to a specific type, shorthand
 auto two = std::sqrt(4); // type deduction from return value
-\end{lstlisting}
+\end{minted}
 
-\texttt{auto} can also be used in combination with functions:
+\noindent\texttt{auto} can also be used in combination with functions:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 auto f() -> void;
 
 template <class T, class U>
@@ -55,24 +55,23 @@ auto add(T a, U b) -> decltype(a + b)
 {
     return a + b;
 }
-\end{lstlisting}
+\end{minted}
 
-The \textit{trailing return type} syntax is especially needed when used with templates, as the second example shows. \texttt{decltype} is the counterpart to \texttt{auto} as it returns the type of an expression (which must be evaluable at compile-time).
+\noindent The \textit{trailing return type} syntax is especially needed when used with templates, as the second example shows. \texttt{decltype} is the counterpart to \texttt{auto} which returns the type of an expression (must be evaluable at compile-time).
 
-With C++14 the return type is no longer needed (as long as the function body is visible to the compiler):
+Since C++14 the return type is no longer needed as long as the function body is visible to the compiler and the function itself is not recursive:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 template <class T, class U>
 auto add(T a, U b)
 {
-    // add's return value deduced to be decltype(a + b)
     return a + b;
 }
-\end{lstlisting}
+\end{minted}
 
-According to Herb Sutter~\cite{sutteraaa} one should follow an \textit{Almost Always Auto (AAA)} pattern, i.e. use \texttt{auto} wherever possible. It can also be shown that the adoption of this practice leads to better performing and more secure code~\cite{sutter_cppcon}.
+\noindent According to Herb Sutter~\cite{sutteraaa} one should follow an \textit{Almost Always Auto (AAA)} pattern, i.e. use \texttt{auto} wherever possible. It can also be shown that the adoption of this practice leads to better performing and more secure code~\cite{sutter_cppcon}.
 
-\subsubsection{Host Memory Management}
+\subsubsection{Host Memory Management}\label{modern:vec_add:host_mem}
 
 \paragraph{Vector Creation}
 
@@ -84,9 +83,9 @@ Before the kernel can be executed the input vectors need to be initialized, whic
 \item after kernel execution, freeing memory with \texttt{delete} or \texttt{free}.
 \end{itemize}
 
-However, this is not idiomatic and contradicts the design philosophy introduced in Section \ref{subs:intro_philosophy}. A better and more modern approach could look similar to the following code:
+\noindent However, this is not idiomatic and contradicts the design philosophy mentioned in Section \ref{intro:philosophy}. A more modern approach looks like the following code:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 constexpr auto size = 1000;
 
 auto host_a = std::make_unique<std::int32_t[]>(size);
@@ -96,63 +95,57 @@ std::generate(a.get(), a.get() + size, std::rand);
 std::generate(b.get(), b.get() + size, std::rand);
 
 // ...
-\end{lstlisting}
+\end{minted}
 
-The advantages are clear: the need for the preprocessor is eliminated (see Section \ref{vec_add:constexpr}), the memory is automatically \texttt{free}'d once the pointers go out of scope (see Section \ref{vec_add:smart_ptr}) and the usage of \texttt{std::generate} expresses intent much better than a C-style \texttt{for}-loop.
+\noindent This approach offers several advantages: the need for the preprocessor is eliminated (see the \texttt{constexpr} paragraph in this section), the memory is automatically \texttt{free}'d once the pointers leave their scope (see the ``Smart Pointers'' paragraph in this section) and the usage of \texttt{std::generate} expresses intent much better than a C-style \texttt{for}-loop.
 
-\paragraph{The \texttt{constexpr} Keyword}\label{vec_add:constexpr}
+\paragraph{The \texttt{constexpr} Keyword}
 
 \texttt{constexpr} is a new keyword introduced in C++11~\cite{cpp11std}(§20.7). Its purpose is to provide a hint to the compiler that an expression or function can be evaluated at compile-time:
 
-\begin{lstlisting}
-// value is known at compile-time
+\begin{minted}[fontsize=\small]{c++}
 constexpr auto i = 0;
 
 constexpr auto max(std::int32_t a, std::int32_t b)
 {
-    // evaluation is possible at compile time
     return (a > b) ? a : b;
 }
 
-// evaluated at compile-time
 constexpr auto i = max(2, 3);
-
-// if x and y are known at compile-time, evaluate at compile-time
-// otherwise, evaluate at runtime
 auto j = max(x, y);
-\end{lstlisting}
+\end{minted}
 
-Note that the last expression might be executed at runtime, unless \texttt{x} and \texttt{y} are known at compile-time. However, as \texttt{constexpr} functions are usually small the compiler is likely to inline the function or optimize out the call anyway.
+\noindent Note that the last expression might be executed at runtime, unless \texttt{x} and \texttt{y} are known at compile-time. However, as \texttt{constexpr} functions are usually small the compiler is likely to inline the function or optimize the call out anyway.
 
-The benefits are not entirely obvious when comparing \texttt{constexpr} constants to preprocessor constants but they become a lot clearer when looking at \texttt{constexpr} functions. As with a lot of other novelties introduced with C++11 \texttt{constexpr}'s primary purpose is to state \textit{intent}. Assume that the following function was provided by developer A:
+The benefits are not obvious when comparing \texttt{constexpr} constants to preprocessor constants but they become clearer when looking at \texttt{constexpr} functions. Like a lot of other novelties introduced with C++11 \texttt{constexpr}'s primary purpose is to state \textit{intent}. Assume that the following function was provided by developer A:
 
-\begin{lstlisting}
-auto sum(std::uint32_t n)
+\begin{minted}[fontsize=\small]{c++}
+auto sum(std::uint32_t n) -> std::uint32_t
 {
     return n > 0 ? n + sum(n - 1) : n;
 }
-\end{lstlisting}
+\end{minted}
 
-If \texttt{n} is known at compile-time the compiler can easily prove that the function as a whole can be evaluated at compile-time as well, leading to the following:
+\noindent If \texttt{n} is known at compile-time the compiler can easily prove that the function as a whole can be evaluated at compile-time as well, leading to the following:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 float arr[sum(10)]; // works
-\end{lstlisting}
+\end{minted}
 
-Somewhat later developer B decides to change the function in order to make it print the result:
+\noindent Somewhat later developer B decides to change the function in order to make it print the result:
 
-\begin{lstlisting}
-auto sum(std::uint32_t)
+\begin{minted}[fontsize=\small]{c++}
+auto sum(std::uint32_t n) -> std::uint32_t
 {
     auto res = n > 0 ? n + sum(n - 1) : n;
     std::cout << res << std::endl;
     return res;
 }
-\end{lstlisting}
+\end{minted}
 
-Now every context in which \texttt{sum} was evaluated at compile-time is broken. However, this is the fault of developer A as he never promised that the function was usable in such a context. With \texttt{constexpr} he could enforce his intent and prevent other developers from breaking the code base as the compilation would fail.
+\noindent Now every context in which \texttt{sum} was evaluated at compile-time is broken\footnote{GCC 6.2.1 and clang 3.8.1 accept this code. Note that this behaviour is not conforming to the C++ standard. When activating the \texttt{pedantic} flag both compilers will warn about the usage of this extension.}. However, this is the fault of developer A as he never promised that the function was usable in such a context. With \texttt{constexpr} he could enforce his intent and prevent other developers from breaking the code base because the compilation would fail immediately.
 
-\paragraph{Smart Pointers}\label{vec_add:smart_ptr}
+\paragraph{Smart Pointers}
 
 Smart pointers are an addition to the standard library introduced in C++11~\cite{cpp11std}(§20.7). Currently there are three variants:
 \begin{itemize}
@@ -171,24 +164,23 @@ At the same time the predecessor \texttt{auto\_ptr} was marked as deprecated~\ci
 \end{itemize}
 
 Memory is allocated in the following way:
-\begin{lstlisting}
-// C++11
+\begin{minted}[breaklines,breakafter=\{,fontsize=\small]{c++}
 auto unique_obj = std::unique_ptr<my_class>{new my_class(args)};
 auto unique_arr = std::unique_ptr<std::int32_t[]>{new std::int32_t[size]};
-// C++14
+// make_unique was introduced in C++14
 auto unique_obj = std::make_unique<my_class>(args);
 auto unique_arr = std::make_unique<std::int32_t[]>(size);
-// C++11
+
 auto shared_obj = std::make_shared<my_class>(args);
 auto shared_arr = std::make_shared<std::int32_t[]>(size);
-// C++11
+
 auto weak_obj = std::weak_ptr<my_class>(shared_obj);
 auto weak_arr = std::weak_ptr<std::int32_t[]>(shared_arr);
-\end{lstlisting}
+\end{minted}
 
-The big benefit of smart pointers becomes clear when looking at how memory is \texttt{free}'d: This is done automatically once the pointer goes out of scope (\texttt{unique\_ptr}) or the internal reference counter is set to zero (\texttt{shared\_ptr}). This essentially makes \texttt{new} and \texttt{delete} obsolete with no (\texttt{unique\_ptr}) to low (\texttt{shared\_ptr} because of reference counting) overhead.
+\noindent The big benefit of smart pointers becomes clear when looking at how memory is \texttt{free}'d: This is done automatically once the pointer goes out of scope (\texttt{unique\_ptr}) or the internal reference counter is set to zero (\texttt{shared\_ptr}). This essentially makes \texttt{new} and \texttt{delete} obsolete with no (\texttt{unique\_ptr}) to low (\texttt{shared\_ptr} because of reference counting) overhead.
 
-\subsubsection{Device Memory Management}
+\subsubsection{Device Memory Management}\label{modern:vec_add:dev_mem}
 
 After the host memory has been initialized the vectors have to be copied to device memory in order to be processed by the kernel. Traditionally one would
 
@@ -198,18 +190,16 @@ After the host memory has been initialized the vectors have to be copied to devi
 \item finally free the memory using \texttt{cudaFree}.
 \end{itemize}
 
-As this is plain C style it does not correspond to the modern design philosophy mentioned earlier. The whole process feels a lot more idiomatic if we could wrap the calls to \texttt{cudaMalloc} and \texttt{cudaFree} in order to use them in a fashion similar to the host memory functions described in Section \ref{vec_add:smart_ptr}:
+As this is plain C style it does not correspond to the modern design philosophy mentioned in Section \ref{intro:philosophy}. The whole process feels a lot more idiomatic if the calls to \texttt{cudaMalloc} and \texttt{cudaFree} are wrapped in order to use them in a fashion similar to the host memory functions described in Section \ref{modern:vec_add:host_mem}:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 auto dev_a = make_device_ptr<std::int32_t>(size);
 auto dev_b = make_device_ptr<std::int32_t>(size);
-\end{lstlisting}
+\end{minted}
 
-This approach also removes the explicit call to \texttt{cudaFree} which would be needed in multiple locations otherwise in order to catch CUDA runtime errors and behave accordingly.
+\noindent This approach also removes the explicit call to \texttt{cudaFree} which would be needed in multiple locations otherwise in order to catch CUDA runtime errors and behave accordingly. The \texttt{make\_device\_ptr} function in this example is implemented as follows:
 
-The \texttt{make\_device\_ptr} function could be implemented as follows:
-
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 struct device_deleter { 
     auto operator()(void* p) -> void { cudaFree(p); }
 };
@@ -224,71 +214,71 @@ auto make_device_ptr(std::size_t size) -> device_ptr<T>
     cudaMalloc(reinterpret_cast<void**>(&p), size * sizeof(T));
     return device_ptr<T>(p);
 }
-\end{lstlisting}
+\end{minted}
 
-Note the \texttt{using} directive above which is a new way of declaring \texttt{typedef}s. This keyword will be presented in Section \ref{vec_add:using}.
+\noindent Note the \texttt{using} directive above which is a new way of declaring \texttt{typedef}s. This keyword is presented later in this section.
 
-Once the device memory is allocated the memory can be copied from the host to the device. As the smart pointer itself cannot be passed to \texttt{cudaMemcpy} we need to access the ``raw'' pointer which can be done by using the \texttt{get} member function:
+Once the device memory is allocated, it can be copied from the host to the device. Because the smart pointer itself cannot be passed to \texttt{cudaMemcpy}, we need to access the ``raw'' pointer which can be done by using the \texttt{get} member function:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 auto bytes = size * sizeof(std::int32_t);
 cudaMemcpy(dev_a.get(), host_a.get(), bytes, cudaMemcpyHostToDevice);
 cudaMemcpy(dev_b.get(), host_b.get(), bytes, cudaMemcpyHostToDevice);
 // ...
 cudaMemcpy(host_c.get(), dev_c.get(), bytes, cudaMemcpyDeviceToHost);
-\end{lstlisting}
+\end{minted}
 
-For the sake of clarity error handling is omitted during the entire example. However, in a real-world application one would need to catch all CUDA runtime errors which are returned by calls to all CUDA functions. If an error occurs the allocated memory (both host and device) needs to be \texttt{free}'d before returning, or else memory is leaked. This adds a lot of ``boilerplate'' code which can be avoided entirely by relying on smart pointers.
+\noindent For the sake of clarity, error handling is omitted. However, in a real-world application one would need to catch all CUDA runtime errors which are returned by calls to all CUDA functions. If an error occurs the allocated memory (both host and device) needs to be \texttt{free}'d before returning, or else memory is leaked. This adds a lot of ``boilerplate'' code which can be avoided by relying on smart pointers.
 
-\paragraph{The \texttt{using} Keyword}\label{vec_add:using}
+\paragraph{The \texttt{using} Keyword}
 
 The \texttt{using} keyword was adapted to serve as another form of \texttt{typedef} in C++11~\cite{cpp11std}(§7.1.3/2). It provides some benefits over classic \texttt{typedef} as the following examples show:
 
-\begin{lstlisting}
-typedef int my_type; // old
-using my_type = int; // new
+\begin{minted}[fontsize=\small]{c++}
+typedef int my_type;
+using my_type = int;
 
-typedef void (*func_ptr)(double); // old
-using func_ptr = void (*)(double); // new
+typedef void (*func_ptr)(double);
+using func_ptr = void (*)(double);
 
-// new, not possible with typedef
+// not possible with typedef
 template <class T>
 using my_vec = std::vector<T, my_allocator>;
-\end{lstlisting}
+\end{minted}
 
-While the first example does not change much, the second example shows that function pointer definitions can be expressed a lot clearer as the type name is now clearly separated from the definition. Additionally, the ability to define templated \texttt{typedef}s is a big advantage of its own as this was not possible before and adds a lot more flexibility to the language.
+\noindent While the first example does not change much, the second example shows that function pointer definitions can be expressed a lot clearer because the type name is now clearly separated from the definition. Additionally, the ability to define templated \texttt{typedef}s is a big advantage of its own as this was not possible before and adds a lot more flexibility to the language.
 
-As a side note, this is also coherent with the new \texttt{auto} style of variable definitions, i.e. the separation of variable/type name and the corresponding definition. This is becoming a pattern of itself and is increasingly advertised by C++ experts~\cite{sutter_cppcon}.
+This is also coherent with the new \texttt{auto} style of variable definitions, i.e. the separation of the variable or type name and the corresponding definition. This is becoming a pattern of itself and is increasingly advertised by C++ experts~\cite{sutter_cppcon}.
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 auto var = 0;
 using type = int;
-\end{lstlisting}
+\end{minted}
 
-\subsubsection{Launching the Kernel}
+\subsubsection{Launching the Kernel}\label{modern:vec_add:kernel_launch}
 
-Once all the preparations are done the kernel can be executed. Usually one would call the kernel, specify the grid and block dimensions and pass the parameters. However, there are small kernels for which a manual configuration of the dimensions are \textit{de facto} useless as it would not provide a performance benefit; in these cases it would be much better to have a simple \texttt{cuda\_launch} function that uses functions provided by the CUDA runtime to calculate these dimensions. Such a function could be implemented as follows:
+Once all the preparations are done the kernel can be executed. Usually one would call the kernel, specify the grid and block dimensions and pass the parameters. Because there are small kernels for which a manual configuration of the dimensions are useless (as it would not provide a performance benefit), it would be much better to have a simple \texttt{cuda\_launch} function. This function would use mechanisms provided by the CUDA runtime to calculate these dimensions. In this example \texttt{cuda\_launch} is implemented in the following way:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 template <class... Args>
 auto cuda_launch(void (*kernel)(Args...), Args... args) -> void
 {
     // omitted: calculate grid_size and block_size
     kernel<<<grid_size, block_size>>>(args...);
 }
-\end{lstlisting}
+\end{minted}
 
-By making use of \textit{variadic templates} (which will be discussed in Section \ref{vec_add:variadic_templates}) we can pass any kernel with an arbitrary number of arguments to \texttt{cuda\_launch} which will determine the dimension configuration and then execute the kernel accordingly.
+\noindent By making use of \textit{variadic templates} we can pass any kernel with an arbitrary number of arguments to \texttt{cuda\_launch} which will determine the dimension configuration and then execute the kernel accordingly.
 
-\paragraph{Variadic Templates}\label{vec_add:variadic_templates}
+\paragraph{Variadic Templates}
 
-Variadic templates are a language extensions introduced in C++11~\cite{cpp11std}(§14.2.15). They are somewhat similar to variadic functions known from C (see \texttt{printf} for an example), except that their ``parameter packs'' are unpacked at compile-time which leads to different function signatures for different parameters. Additionally, they are usable outside of functions as well, for example in template meta programming.
+Variadic templates are a language extensions introduced in C++11~\cite{cpp11std}(§14.2.15). They are somewhat similar to variadic functions known from C (see \texttt{printf} for an example), except that their \textit{parameter packs} are unpacked at compile-time which leads to different function signatures for different parameters. Additionally, they are usable outside of functions as well, for example in template meta programming.
 
-\subsubsection{Summary}
+\subsubsection{Summary}\label{modern:vec_add:summary}
 
 By combining the modernizations mentioned in the previous sections we get the following program:
 
-\begin{lstlisting}
+\begin{minted}[fontsize=\small]{c++}
 constexpr auto size = 1000;
 
 auto host_a = make_unique<std::int32_t[]>(size);
@@ -302,12 +292,13 @@ auto dev_c = make_device_ptr<std::int32_t>(size);
 std::generate(host_a.get(), host_a.get() + size, std::rand);
 std::generate(host_b.get(), host_b.get() + size, std::rand);
 
-cudaMemcpy(dev_a.get(), host_a.get(), size * sizeof(std::int32_t), cudaMemcpyHostToDevice);
-cudaMemcpy(dev_b.get(), host_b.get(), size * sizeof(std::int32_t), cudaMemcpyHostToDevice);
+auto bytes = size * sizeof(std::int32_t);
+cudaMemcpy(dev_a.get(), host_a.get(), bytes, cudaMemcpyHostToDevice);
+cudaMemcpy(dev_b.get(), host_b.get(), bytes, cudaMemcpyHostToDevice);
 
 cuda_launch(vec_add, dev_a.get(), dev_b.get(), dev_c.get(), size);
 
-cudaMemcpy(host_c.get(), dev_c.get(), size * sizeof(std::int32_t), cudaMemcpyDeviceToHost);
-\end{lstlisting}
+cudaMemcpy(host_c.get(), dev_c.get(), bytes, cudaMemcpyDeviceToHost);
+\end{minted}
 
-This is much more idiomatic than its C equivalent while providing the benefits of \gls{raii} with regard to the CUDA memory. By providing own versions of \texttt{unique\_ptr} with additional metadata it would be easy to wrap the calls to \texttt{cudaMemcpy} and remove the need for size calculations and \texttt{enum} values for the copy direction. However, that is out of the scope of this document.
+\noindent This is more idiomatic and cleaner than its C equivalent while providing the benefits of \gls{raii} with regard to host and CUDA device memory. By providing own versions of \texttt{unique\_ptr} with additional metadata it would be easy to wrap the calls to \texttt{cudaMemcpy} and remove the need for size calculations and \texttt{enum} values for the copy direction.

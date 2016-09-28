@@ -1,46 +1,49 @@
 \documentclass[utf8,hauptseminar]{zihpub}
 
 \usepackage{datetime}
-\usepackage{glossaries}
+\usepackage{etoolbox}
+\usepackage[acronyms]{glossaries}
 \usepackage{listings}
-\usepackage[dvipsnames]{xcolor}
+\usepackage[section]{minted}
+\usepackage{tcolorbox}
+%\usepackage[dvipsnames]{xcolor}
 
 \newdateformat{titledate}{\ordinalnum{\THEDAY} \monthname[\themonth], \THEYEAR}
 
+\BeforeBeginEnvironment{minted}{\begin{tcolorbox}}
+\AfterEndEnvironment{minted}{\end{tcolorbox}}
+
 \newcommand{\lstfont}[1]{\color{#1}\small\ttfamily}
 
-\lstset{language=[11]C++,
-		showstringspaces=false,
-		frame=lrtb,
-		xleftmargin=\parindent,
-		basicstyle=\lstfont{black},
-		keywordstyle=\lstfont{magenta},
-		stringstyle=\lstfont{orange},
-		emph={cudaMalloc, cudaFree, __global__},
-		emphstyle=\lstfont{magenta},
-		breaklines=true}
+%\lstset{language=[11]C++,
+%		showstringspaces=false,
+%		basicstyle=\lstfont{black},
+%		keywordstyle=\lstfont{magenta},
+%		stringstyle=\lstfont{orange},
+%		emph={cudaMalloc, cudaFree, __global__},
+%		emphstyle=\lstfont{magenta},
+%		breaklines=true}
 
 \author{Jan Stephan}
 \title{Innovations in C++11, 14 and 17 in the Context of Performance Analysis of HPC Applications}
 \matno{3755136}
 \betreuer{Ronny Brendel}
 
-\makeglossaries
-
 \newacronym{raii}{RAII}{Resource Acquisition is Initialization}
 \newacronym{stl}{STL}{Standard Template Library}
+
+\makeglossaries
 
 \begin{document}
 
 \include{introduction}
 \include{vec_add}
 \include{queue}
-\include{blowfish}
+%\include{blowfish}
 \include{scorep}
 \include{cpp17}
+\include{conclusion}
 \include{literature}
 \bibliography{bibliography.bib}{}
 \include{appendix}
-
-
 \end{document} 
