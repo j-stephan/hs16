@@ -38,7 +38,7 @@ When compared to \texttt{std::async}, \texttt{std::thread} follows a more ``low 
 
 There are two test cases for \texttt{std::thread}: the first spawns a thread and joins it afterwards (Appendix \ref{app:conc_thread_join}), the second spawns a thread and detaches it, making it unjoinable (Appendix \ref{app:conc_thread_detach}).
 
-Both test cases fail to execute and produce the same error message already known from Section \ref{scorep:conc:async}. Because \texttt{std::thread} simply wraps a Pthread (at least in libstdc++) its behaviour can be emulated. Figures \ref{scorep:conc:pthread_join_timeline} and \ref{scorep:conc:pthread_detach_timeline} are created by profiling such an emulation.
+Both test cases fail to execute and produce the same error message already known from the previous section. Because \texttt{std::thread} simply wraps a Pthread (at least in libstdc++) its behaviour can be emulated. Figures \ref{scorep:conc:pthread_join_timeline} and \ref{scorep:conc:pthread_detach_timeline} are created by profiling such an emulation.
 
 Figure \ref{scorep:conc:pthread_join_timeline} shows the creation of a thread by the master thread (the first blue block). Afterwards the master thread tries to join the new thread (the second blue block). This call blocks the master thread as indicated by the black lines connected to the thread execution (lower green block). The master thread can only resume once the spawned thread has completed its work, indicated by the second black line.
 
@@ -62,7 +62,7 @@ Figure \ref{scorep:conc:pthread_detach_timeline} show the creation of a thread b
 
 \subsubsection{Summary}
 
-At the time of writing, Score-P's support for C++11 multithreading is nonexistent as the error messages from Section \ref{scorep:conc:async} and Section \ref{scorep:conc:thread} show. The likely cause for these errors lies in the internals of the GNU C++ compiler's standard library because the threading support library is compiled into the shared library object. Score-P is unable to instrument this already compiled code and crashes upon execution once it encounters an unknown thread.
+At the time of writing, Score-P's support for C++11 multithreading is nonexistent as the error messages from the sections above show. The likely cause for these errors lies in the internals of the GNU C++ compiler's standard library because the threading support library is compiled into the shared library object. Score-P is unable to instrument this already compiled code and crashes upon execution once it encounters an unknown thread.
 
 The solution for this problem would be a more graceful handling of ``unknown threads'': Instead of crashing, Score-P should simply register them on the fly. As of September 2016 there is a new Score-P development branch adressing this issue.
 
@@ -149,7 +149,7 @@ Again, Score-P and Vampir ignore all file operations. This shows that the issue 
 
 \subsubsection{Summary}
 
-As of September 2016 Score-P does not support the instrumentation of file I/O. There is, however, a development branch targeting these issues for the C API, representing file operations as horizontal black arrows on the master timeline. From a usability perspective it might be more intuitive to represent them as black blocks (similar to Pthread library calls) instead of arrows.
+As of September 2016 Score-P does not support the instrumentation of file I/O. There is, however, a development branch targeting these issues for the C API, representing file operations as triangles on the master timeline. From a usability perspective it might be more intuitive to represent them as a range rather than points (similar to Pthread library calls).
 
 The visualisation of C++ file I/O should look similar to the proposed C API visualisation; a call to \texttt{std::fstream::write} is usually interchangeable with a call to \texttt{std::fwrite} since both operate on the level of individual bytes.
 

@@ -41,7 +41,7 @@ struct s {
     volatile double y;
 };
 
-auto f() -> s { // ... }
+auto f() -> s { /* ... */ }
 const auto [x, y] = f();
 
 foo(x); // x is of type const int
@@ -67,4 +67,6 @@ Apart from changes to the core language the upcoming standard will see additions
 \item parallelisable algorithms (in the header \texttt{<algorithm>})~\cite{cpp17std}(§25)
 \end{itemize}
 
-\noindent The last point raises the question how parallelisable algorithms such as \texttt{std::find} are internally implemented (which makes them suitable for specific use cases or not). At the time of writing most of the commonly available standard libraries do not yet support parallel algorithms; however, Microsoft provided an open-source reference implementation~\cite{parallel_stl} to which the inclined reader may refer to learn about the details.
+\noindent The last point raises the question how parallelisable algorithms such as \texttt{std::find} are internally implemented (which makes them suitable for specific use cases or not). At the time of writing most of the commonly available standard libraries do not yet support parallel algorithms; however, Microsoft provided an open-source reference implementation~\cite{parallel_stl}.
+
+Appendix~\ref{app:par_find} shows a Microsoft-inspired implementation of a parallelised \texttt{std::find}. In this example the work is distributed amongst an implementation-defined number of threads. Each thread then processes its part of the work. Once it finds the value in question it checks the shared state for the existence of a better find. Should there be no better result the state is set to the current value; otherwise the value is discarded. In either case the thread stops its execution at this point. If there are no fitting values the thread continues its execution until it reaches the end of its range.

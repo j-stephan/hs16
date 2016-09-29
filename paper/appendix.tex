@@ -359,4 +359,48 @@ auto main() -> int
 }
 \end{minted}
 
+\section{Parallel \texttt{std::find}}\label{app:par_find}
+
+\begin{minted}[breaklines,breakafter=\,,fontsize=\small]{c++}
+using namespace std;
+
+template <class It, class T>
+It find_impl(execution::par, It first, It last, const T& value)
+{
+    // container size
+    auto size = distance(first, last);
+    
+    // thread-shared state
+    using diff_t = typename iterator_traits<It>::difference_type;
+    atomic<diff_t> state(size);
+    
+    /* Omitted: thread spawning. count represents the thread-local
+     * work size, begin the thread-local starting position. */
+    auto dist = distance(first, begin);   
+    for(auto pos = 0; pos < count; ++pos, ++begin) {
+        if(value == *begin) {
+            auto cur = dist + pos;
+            auto old = state.load(memory_order_relaxed);
+            
+            do {
+                // do not replace if a closer match has been found
+                if(old < cur)
+                    break;
+            } while(!state.compare_exchange_strong(old, cur, memory_order_relaxed));
+            
+            break;
+        }
+    }
+    
+    /* Omitted: thread joining. */
+    auto pos = state.load(memory_order_relaxed);
+    if(pos != size) {
+        advance(first, pos);
+        return first;
+    }
+    
+    return last;
+}
+\end{minted}
+
 \end{appendix}

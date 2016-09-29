@@ -4,7 +4,7 @@ A simple producer/consumer queue is implemented in the following sections to sho
 
 \subsubsection{C++11 Thread Support}\label{modern:queue:support}
 
-Before the new C++ standard was published in 2011 there was no standardised way to create and manage threads in a platform independent manner. The programmer had to resort to mechanisms specific to the targetted operating system, e.g. Pthreads or Win32 threads, or third-party libraries like Qt. Furthermore these mechanisms are not idiomatic as they are usually plain C interfaces. This means there was no native support for \gls{raii}, making wrappers around these interfaces necessary. Additionally, there was no platform-independent support for atomic operations.
+Before the new C++ standard was published in 2011 there was no standardised way to create and manage threads in a platform independent manner. The programmer had to resort to mechanisms specific to the targetted operating system, e.g. Pthreads~\cite{pthreads} or Win32 threads~\cite{win32threads}, or third-party libraries like Qt~\cite{qt}. Furthermore these mechanisms are not idiomatic as they are usually plain C interfaces. This means there was no native support for \gls{raii}, making wrappers around these interfaces necessary. Additionally, there was no platform-independent support for atomic operations.
 
 With the adoption of C++11 the situation changed: the new standard introduced a thread support library~\cite{cpp11std}(§30) and an atomic operations library~\cite{cpp11std}(§29). Both will be briefly introduced in the following sections.
 

@@ -8,7 +8,7 @@ Using the CUDA toolkit, this subsection introduces some of the features supporte
 
 \subsubsection{The Kernel}\label{modern:vec_add:kernel}
 
-Supported by the CUDA runtime for a subset of C++11 has been available since CUDA 7. A kernel which implements a vector addition looks like the following code:
+Support by the CUDA runtime for a subset of C++11 has been available since CUDA 7. A kernel which implements a vector addition looks like the following code:
 
 \begin{minted}[breaklines,breakafter=\,,fontsize=\small]{cuda}
 __global__ void vector_add(const std::int32_t* a, const std::int32_t* b, std::int32_t* c, std::size_t size)
@@ -158,7 +158,7 @@ At the same time the predecessor \texttt{auto\_ptr} was marked as deprecated~\ci
 \begin{itemize}
 \item \texttt{unique\_ptr} is used when there is only one owner of the pointer, for example in a function-local context, as a class member variable or as nodes of a tree.
 
-\item \texttt{shared\_ptr} is the counterpart for situations in which shared ownership is needed, for example nodes in a graph were each node can have multiple parents.
+\item \texttt{shared\_ptr} is the counterpart for situations in which shared ownership is needed, for example nodes in a graph where each node can have multiple parents.
 
 \item \texttt{weak\_ptr} is a ``pointer to pointer''-like construct as it has to be converted to a \texttt{shared\_ptr} before being able to access the memory.
 \end{itemize}
