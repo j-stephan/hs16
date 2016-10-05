@@ -1,0 +1,52 @@
+In the course of time errors and ambiguities have been found in the paper which
+shall be documented here.
+
+
+********************************** GCC 6.2.1 **********************************
+
+The text refers to "GCC 6.2.1" multiple times. There is no official GCC release
+with this version number; however, some linux distributions call their specific
+version of the development branch "6.2.1" (notably Fedora and Arch).
+
+In order to reproduce the same behaviour as described in the paper, "GCC 6.2.1"
+can be built as follows (taken from Arch Linux's PKGBUILD):
+
+    Dependency: needs libmpc 1.0.3 <http://www.multiprecision.org> 
+
+    # checkout right gcc version
+    git clone git://gcc.gnu.org/git/gcc.git
+    cd gcc
+    git checkout c2103c17
+
+    # download and link isl for in-tree build
+    cd ..
+    wget http://isl.gforge.inria.fr/isl-0.16.1.tar.bz2
+    tar jxf isl-0.16.1.tar.bz2
+    cd gcc
+    ln -s ../isl-0.16.1 isl
+
+    # create build directory
+    mkdir ../gcc-build
+    cd ../gcc-build
+
+    # using -pipe causes spurious test-suite failures
+    # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48565
+    CFLAGS=${CFLAGS/-pipe/}
+    CXXFLAGS=${CXXFLAGS/-pipe/}
+
+    # configure
+    ../gcc/configure --enable-languages=c,c++,ada,fortran,go,lto,objc,obj-c++ \
+        --enable-shared --enable-threads=posix --enable-libmpx \
+        --with-system-zlib --with-isl --enable-__cxa_atexit \
+        --disable-libunwind-exceptions --enable-clocale=gnu \
+        --disable-libstdcxx-pch --disable-libssp \
+        --enable-gnu-unique-object --enable-linker-build-id \
+        --enable-lto --enable-plugin --enable-install-libiberty \
+        --disable-multilib --disable-werror \
+        --enable-checking=release
+
+    # build
+    make
+
+    # check and/or install as needed from here
+
